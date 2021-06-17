@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.elbigs.mapper.UserShopMapper">
+    <select id="selectUserShopList" resultType="com.elbigs.dto.ShopDto">
+        with category as (
+            select s.id, min(mc."name" ) category_name, count(1) category_cnt
+              from menu_category_shop cs
+              join menu_categories mc on cs.menu_category_id = mc.id
+              join shops s on s.id = cs.shop_id
+             where s.user_id = #{userPk}
+             group by s.id
+        )
+        select s.id
+             , s."name"
+             , case when c.category_cnt > 1 then c.category_name || ' 외 ' || c.category_cnt - 1 else c.category_name end as "category"
+             , s.tel
+             , to_char(s.created_at , 'YYYY-MM-DD') as created_at
+             , to_char(s.updated_at , 'YYYY-MM-DD') as updated_at
+             , count(1) over() shop_total_count
+          from shops s left join category c on s.id = c.id
+         where s.user_id = #{userPk}
+           and s.deleted_at is null
+           <if test="searchStr!=null and searchStr!=''">
+           and s.name like '%'|| #{searchStr} ||'%'
+           </if>
+           <if test="categoryId!=null and categoryId > 0">
+           and exists ( select 1 from menu_category_shop mcs where mcs.shop_id = s.id and mcs.menu_category_id = #{categoryId} )
+           </if>
+         order by s.id
+        <if test="length > 0">
+         limit #{length} offset #{beginNo}
+        </if>
+    </select>
+    <select id="selectShop" resultType="com.elbigs.dto.ShopDto">
+        select id
+             , user_id
+             , status
+             , name
+             , en_name
+             , cn_name
+             , jp_name
+             , tel
+             , owner_name
+             , owner_phone
+             , business_number
+             , all_time
+             , open_time
+             , close_time
+             , post_code
+             , addr
+             , addr_detail
+             , addr_extra
+             , holiday
+             , en_holiday
+             , cn_holiday
+             , jp_holiday
+             , tags
+             , en_tags
+             , cn_tags
+             , jp_tags
+             , available_service
+             , en_available_service
+             , cn_available_service
+             , jp_available_service
+             , smart_order_yn
+             , created_at
+             , updated_at
+             , deleted_at
+             , "token"
+          from shops s
+         where id = #{id}
+    </select>
+    <insert id="insertShop" parameterType="com.elbigs.entity.ShopEntity">
+        insert into shops (
+                       user_id
+                     , shop_id
+                     , status
+                     , name
+                     , en_name
+                     , cn_name
+                     , jp_name
+                     , tel
+                     , owner_name
+                     , owner_phone
+                     , business_number
+                     , all_time
+                     , open_time
+                     , close_time
+                     , post_code
+                     , addr
+                     , addr_detail
+                     , addr_extra
+                     , holiday
+                     , en_holiday
+                     , cn_holiday
+                     , jp_holiday
+                     , tags
+                     , en_tags
+                     , cn_tags
+                     , jp_tags
+                     , available_service
+                     , en_available_service
+                     , cn_available_service
+                     , jp_available_service
+                     , smart_order_yn
+                     , created_at
+                     , "token" )
+        values (  #{userId}, #{shopId}, #{status}, #{name}, #{enName}, #{cnName}, #{jpName}, #{tel}, #{ownerName}, #{ownerPhone}, #{businessNumber}, #{allTime}, #{openTime}, #{closeTime}, #{postCode}, #{addr}, #{addrDetail}, #{addrExtra}
+                , #{holiday}, #{enHoliday}, #{cnHoliday}, #{jpHoliday}, #{tags}, #{enTags}, #{cnTags}, #{jpTags}, #{availableService}, #{enAvailableService}, #{cnAvailableService}, #{jpAvailableService}, #{smartOrderYn}, now(), #{token})
+        <selectKey keyProperty="id" resultType="long" order="AFTER">
+            select currval('shops_id_seq')
+        </selectKey>
+    </insert>
+    <update id="updateShop">
+           update shops
+           set user_id = #{userId}
+             , shop_id = #{shopId}
+             , status = #{status}
+             , name = #{name}
+             , en_name = #{enName}
+             , cn_name = #{cnName}
+             , jp_name = #{jpName}
+             , tel = #{tel}
+             , owner_name = #{ownerName}
+             , owner_phone = #{ownerPhone}
+             , business_number = #{businessNumber}
+             , all_time = #{allTime}
+             , open_time = #{openTime}
+             , close_time = #{closeTime}
+             , post_code = #{postCode}
+             , addr = #{addr}
+             , addr_detail = #{addrDetail}
+             , addr_extra = #{addrExtra}
+             , holiday = #{holiday}
+             , en_holiday = #{enHoliday}
+             , cn_holiday = #{cnHoliday}
+             , jp_holiday = #{jpHoliday}
+             , tags = #{tags}
+             , en_tags = #{enTags}
+             , cn_tags = #{cnTags}
+             , jp_tags = #{jpTags}
+             , available_service = #{availableService}
+             , en_available_service = #{enAvailableService}
+             , cn_available_service = #{cnAvailableService}
+             , jp_available_service = #{jpAvailableService}
+             , smart_order_yn = #{smartOrderYn}
+             , updated_at = now()
+            <if test="deleteYn!=null">
+             , deleted_at = now()
+            </if>
+           where id = #{id}
+    </update>
+    <update id="deleteShop">
+       update shops
+          set deleted_at = now()
+        where id = #{id}
+    </update>
+    <select id="selectShopDetailFo" resultType="java.util.HashMap">
+        select s.id
+             , s.tel as contact
+             , case when all_time = true then '24시간 영업' else s.open_time|| '~' || s.close_time end as business_hours
+             <if test="lang=='ko'">
+             , s."name"
+             , s.holiday as closed_day
+             , s.tags
+             , s.available_service
+             </if>
+             <if test="lang=='cn'">
+             , s.cn_name as name
+             , s.cn_holiday as closed_day
+             , s.cn_tags tags
+             , s.cn_available_service as available_service
+             </if>
+             <if test="lang=='en'">
+             , s.en_name as name
+             , s.en_holiday as closed_day
+             , s.en_tags as tags
+             , s.en_available_service as available_service
+             </if>
+             <if test="lang=='jp'">
+             , s.jp_name as name
+             , s.jp_holiday as closed_day
+             , s.jp_tags as tags
+             , s.jp_available_service as available_service
+             </if>
+             , s.smart_order_yn
+             , false as visit_time_status
+             , s."token" is not null as order_status
+        from shops s where id = #{id}
+    </select>
+    <select id="selectShopSearch" resultType="com.elbigs.entity.ShopEntity">
+         select s.id, s.name
+           from shops s inner join initial_search_shop iss on s.id = iss.shop_id
+          where iss.initial_search_id = #{initialSearchId}
+            and s.user_id = #{userPk}
+            and s.deleted_at is null
+    </select>
+</mapper>

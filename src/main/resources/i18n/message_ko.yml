@@ -1,0 +1,42 @@
+unKnown:
+  code: "-9999"
+  msg: "알수없는 오류가 발생하였습니다."
+userNotFound:
+  code: "-1000"
+  msg: "존재하지 않는 회원입니다."
+emailSigninFailed:
+  code: "-1001"
+  msg: "계정 정보 확인 부탁드립니다."
+entryPointException:
+  code: "-1002"
+  msg: "해당 리소스에 접근하기 위한 권한이 없습니다."
+accessDenied:
+  code: "-1003"
+  msg: "보유한 권한으로 접근할수 없는 리소스 입니다."
+communicationError:
+  code: "-1004"
+  msg: "통신 중 오류가 발생하였습니다."
+existingUser:
+  code: "-1005"
+  msg: "이미 가입한 회원입니다. 로그인을 해주십시오."
+notOwner:
+  code: "-1006"
+  msg: "해당 자원의 소유자가 아닙니다."
+resourceNotExist:
+  code: "-1007"
+  msg: "요청한 자원이 존재 하지 않습니다."
+forbiddenWord:
+  code: "-1008"
+  msg: "입력한 내용에 금칙어({0})가 포함되어 있습니다."
+
+error:
+  msg:
+    required: "필수 입력 항목입니다."
+    invalid-business-number: "사업자 번호 입력 형태가 옳지 않습니다."
+    invalid-tel_1: "지역 번호에 맞는 형태를 입력 바랍니다. ex)010, 02 ..."
+    invalid-tel_2: "전화번호 형식에 맞게 입력 바랍니다."
+    invalid-tel_3: "전화번호 형식에 맞게 입력 바랍니다."
+    invalid-time: "시간 범위에 맞게 입력 바랍니다. ex)00:00 ~ 23:59"
+    change-password1: "입력한 두 비밀번호가 일치하지 않습니다."
+    change-password2: "이전 비밀번호가 일치하지 않습니다."
+    change-password3: "6자 이상 입력 바랍니다."

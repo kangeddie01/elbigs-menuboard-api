@@ -1,0 +1,41 @@
+logging:
+  level:
+    root: info
+    com.elbigs: info
+
+spring:
+  datasource:
+    url: jdbc:log4jdbc:postgresql://20.194.25.30:5432/dev_gov
+    driver-class-name: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
+    username: dev_gov
+    password: Gov_el!
+    platform: all
+
+  url:
+    base: http://localhost:8080
+  config:
+    activate:
+      on-profile: local
+
+#Azure Blob Storage settings
+blob:
+  storage-url: https://gds-cdn.azureedge.net/dev-images
+  container-name: dev-images
+  account-name: sjangds
+  account-key: Jopdk4SDzmdymKtUQ5wMLBUfhglSRRynU1gsT+Aw0N2j8oOuzRd4W9N2q1kIBUhrypa7kLzD3mki8EE+C5PuyA==
+  default-endpoints-protocol: https
+
+file:
+  connectable-type-shop: App\Models\Shop
+  connectable-type-facility: App\Models\Facility
+  connectable-type-tourism: App\Models\Tourism
+  connectable-type-event: App\Models\Event
+  connectable-type-lineNotice: App\Models\LineNotice
+  connectable-type-setting: App\Models\Setting
+  connectable-type-notice: App\Models\Notice
+  connectable-type-message: App\Models\Message
+  connectable-type-qna: App\Models\Qna
+  connectable-type-adver: App\Models\AdDetail
+
+weather:
+  service-key: cfb5/nlGD1Pn1T9sIp6162DJW87nj0W4PHsn9sooKE6WD8pIM54BGnWQxtn7Ufk5gxIsr6y0UqYGqLZFUKD4kw==

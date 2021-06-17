@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.elbigs.mapper.UserMapper">
+    <select id="selectUserListAll" resultType="com.elbigs.entity.UserEntity">
+        select id
+             , user_id
+             , password
+             , name
+             , email
+             , phone
+             , tel
+             , city_code
+             , area_x
+             , area_y
+        from users
+        where 1 = 1
+          and deleted_at is null
+          <if test="userId!=null and userId!=''">
+          and user_id = #{userId}
+          </if>
+         order by name
+    </select>
+    <select id="selectUserList" resultType="com.elbigs.dto.UserDto">
+        select id
+             , user_id
+             , "password"
+             , "name"
+             , email
+             , phone
+             , tel
+             , city_code
+             , master_yn
+             , code
+             , company_name
+             , service_key
+             , area_x
+             , area_y
+             , map_client_id
+             , map_client_secret
+             , default_zoom
+             , min_zoom
+             , max_zoom
+             , poi_level_h
+             , poi_level_m
+             , poi_level_l
+             , remember_token
+             , email_verified_at
+             , deleted_at
+             , created_at
+             , updated_at
+             , kakao_zoom_level
+             , company_domain
+             , is_ad
+             , navi_speed
+             , count(1) over() total_count
+             , (select count(1) from shops s where s.user_id = u.id and s.deleted_at is null) shop_count
+             , (select count(1) from kiosks
+                 where agent_name not like '%test%'
+                   and user_id = u.id and active = true ) active
+             , (select count(1) from kiosks
+                 where agent_name not like '%test%'
+                   and user_id = u.id and active = false ) inactive
+          from users u
+         where 1 = 1
+           and deleted_at is null
+           and master_yn = 'N'
+        <if test="searchStr!=null and searchStr!=''">
+           and "name" like '%'|| #{searchStr} ||'%'
+        </if>
+        <if test="startDate!=null and startDate!=''">
+           and created_at between to_date(#{startDate}, 'yyyy-mm-dd') and to_date(#{endDate}, 'yyyy-mm-dd') + 1
+        </if>
+         order by "name"
+        <if test="length > 0">
+         limit #{length} offset #{beginNo}
+        </if>
+    </select>
+    <select id="selectUserByUserId" resultType="com.elbigs.entity.UserEntity">
+        select id
+             , user_id
+             , "password"
+             , "name"
+             , email
+             , phone
+             , tel
+             , city_code
+             , master_yn
+             , code
+             , company_name
+             , service_key
+             , area_x
+             , area_y
+             , map_client_id
+             , map_client_secret
+             , default_zoom
+             , min_zoom
+             , max_zoom
+             , poi_level_h
+             , poi_level_m
+             , poi_level_l
+             , remember_token
+             , email_verified_at
+             , deleted_at
+             , created_at
+             , updated_at
+             , kakao_zoom_level
+             , company_domain
+             , is_ad
+             , navi_speed
+         from  users
+        where  user_id = #{userId}
+    </select>
+    <select id="selectUser" resultType="com.elbigs.dto.UserJoinDto">
+        select id
+             , user_id
+             , "password"
+             , "name"
+             , email
+             , phone
+             , tel
+             , city_code
+             , master_yn
+             , code
+             , company_name
+             , service_key
+             , area_x
+             , area_y
+             , map_client_id
+             , map_client_secret
+             , default_zoom
+             , min_zoom
+             , max_zoom
+             , poi_level_h
+             , poi_level_m
+             , poi_level_l
+             , remember_token
+             , email_verified_at
+             , deleted_at
+             , created_at
+             , updated_at
+             , kakao_zoom_level
+             , company_domain
+             , is_ad
+             , navi_speed
+         from  users
+        where  id = #{userPk}
+    </select>
+    <select id="findByMemberId" resultType="com.elbigs.entity.UserEntity">
+        select id
+             , user_id
+             , password
+             , name
+             , email
+             , phone
+             , tel
+             , city_code
+        from users
+        where user_id = #{userId}
+    </select>
+    <select id="selectUserRoles" resultType="java.lang.String">
+        select roles
+          from user_roles
+         where user_id = #{userId}
+    </select>
+    <insert id="insertFloor">
+        insert into floors ( user_id, "name", floor_id, "order", created_at)
+             values ( #{userId}, #{name}, #{floorId}, #{order}, now() )
+    </insert>
+    <insert id="insertKiosk">
+        insert into kiosks ( user_id, "key", mac_address, addr , "order", x, y, active, poi_id, floor_id, created_at, floor, agent_name)
+             values ( #{userId}, #{key}, #{macAddress}, #{addr}, #{order}, #{x}, #{y}, #{active}, #{poiId}, #{floorId}, now(), #{floor}, #{agentName} )
+    </insert>
+    <update id="updateKiosk">
+        update kiosks set
+               mac_address = #{macAddress}
+             , addr = #{addr}
+             , "order" = #{order}
+             , x = #{x}
+             , y = #{y}
+             , poi_id = #{poiId}
+             , floor_id = #{floorId}
+             , floor = #{floor}
+             , agent_name = #{agentName}
+             , updated_at = now()
+        where id = #{id}
+    </update>
+    <insert id="insertUser" parameterType="com.elbigs.entity.UserEntity">
+        insert into users ( user_id, "password", "name", email, phone, tel, city_code, master_yn, code, company_name, service_key
+                          , area_x, area_y, map_client_id, map_client_secret, default_zoom, min_zoom, max_zoom
+                          , poi_level_h, poi_level_m, poi_level_l, remember_token, email_verified_at, deleted_at, created_at, updated_at
+                          , kakao_zoom_level, company_domain, is_ad, navi_speed )
+             values( #{userId}, #{password}, #{name}, #{email}, #{phone}, #{tel}, #{cityCode}, #{masterYn}, #{code}, #{companyName}, #{serviceKey}
+                          , #{areaX}, #{areaY}, #{mapClientId}, #{mapClientSecret}, #{defaultZoom}, #{minZoom}, #{maxZoom}
+                          , #{poiLevelH}, #{poiLevelM}, #{poiLevelL}, #{rememberToken}, #{emailVerifiedAt}, null, now(), null
+                          , #{kakaoZoomLevel}, #{companyDomain}, #{isAd}, #{naviSpeed} )
+        <selectKey keyProperty="id" resultType="long" order="AFTER">
+            select currval('users_id_seq')
+        </selectKey>
+    </insert>
+    <select id="selectKioskList" resultType="com.elbigs.entity.KioskEntity">
+        select id, user_id, "key", mac_address, addr , "order", x, y, active, poi_id, floor_id, created_at, floor, agent_name, updated_at
+          from kiosks
+         where user_id = #{userId}
+    </select>
+    <select id="selectFloorList" resultType="com.elbigs.entity.FloorEntity">
+        select user_id, "name", floor_id, "order", created_at, updated_at
+          from floors
+         where user_id = #{userId}
+    </select>
+    <update id="updateUser">
+        update users set
+               "name" = #{name}
+             , email = #{email}
+             , phone = #{phone}
+             , tel = #{tel}
+             , city_code = #{cityCode}
+             , master_yn = #{masterYn}
+            <if test="code!=null and code!=''">
+             , code = #{code}
+            </if>
+             , company_name = #{companyName}
+            <if test="serviceKey!=null and serviceKey!=''">
+             , service_key = #{serviceKey}
+            </if>
+             , area_x = #{areaX}
+             , area_y = #{areaY}
+             , map_client_id = #{mapClientId}
+             , map_client_secret = #{mapClientSecret}
+             , default_zoom = #{defaultZoom}
+             , min_zoom = #{minZoom}
+             , max_zoom = #{maxZoom}
+             , poi_level_h = #{poiLevelH}
+             , poi_level_m = #{poiLevelM}
+             , poi_level_l = #{poiLevelL}
+            <if test="rememberToken!=null and rememberToken!=''">
+             , remember_token = #{rememberToken}
+            </if>
+             , email_verified_at = #{emailVerifiedAt}
+             , updated_at = now()
+             , kakao_zoom_level = #{kakaoZoomLevel}
+             , company_domain = #{companyDomain}
+             , is_ad = #{isAd}
+             , navi_speed = #{naviSpeed}
+         where id = #{id}
+    </update>
+    <delete id="deleteKioskById">
+        delete from kiosks where id = #{id}
+    </delete>
+    <delete id="deleteFloor">
+        delete from floors where user_id = #{userId}
+    </delete>
+    <update id="updateUserForDelete">
+        update users set
+               deleted_at = now()
+        where  id = #{id}
+    </update>
+    <update id="updatePassword">
+        update users set
+               password = #{password}
+        where  id = #{id}
+    </update>
+    <select id="selectKioskByMac" resultType="com.elbigs.entity.KioskEntity">
+        select * from kiosks where mac_address = #{macAddress}
+    </select>
+    <select id="selectKioskByKey" resultType="com.elbigs.entity.KioskEntity">
+        select * from kiosks where "key" = #{key}
+    </select>
+</mapper>

@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.elbigs.mapper.StatisticsMapper">
+    <select id="selectChartType1" resultType="com.elbigs.dto.StatisticsDto">
+        select date_index as date_index
+             , sum(count) as count
+             , avg(count) as avg
+          from "views"
+         where "date_index" is not null
+         group by "date_index"
+    </select>
+    <select id="selectChartType2" resultType="com.elbigs.dto.StatisticsDto">
+        with date_list as (
+        select a.date - b.idx as date
+          from ( select CURRENT_DATE - 1 as date ) a
+         cross join ( select generate_series(0, 6) as idx ) b
+         order by date desc)
+        select d.date as event_date
+             , coalesce (sum(count), 0) as count
+             , coalesce (avg(count), 0) as avg
+          from date_list d
+          left join "views" v on v.event_date = d.date
+        <if test="id != null and id > 0">
+              and user_id = #{id}
+        </if>
+         where 1 = 1
+         group by d.date
+         order by d.date
+    </select>
+
+    <select id="selectNetworkCount" resultType="java.util.HashMap">
+        select count(1) total_cnt
+             , sum(case when active = true then 1 else 0 end ) active_cnt
+             , sum(case when active = false then 1 else 0 end ) deactive_cnt
+          from kiosks k
+         where 1 = 1
+         <if test="id != null and id > 0">
+           and k.user_id = #{id}
+         </if>
+           and "agent_name"::text not like '%test%'
+    </select>
+    <resultMap id="selectVisitCountResult" type="HashMap">
+        <id column="name" property="name"/>
+        <id column="count" property="count"/>
+    </resultMap>
+    <select id="selectVisitCount" resultMap="selectVisitCountResult">
+        select case when "type" = 'attraction' then '주변관광지'
+                    when "type" = 'home' then 'MAIN'
+                    when "type" = 'store' then '상점검색'
+                    when "type" = 'event' then '이벤트안내'
+                    when "type" = 'transportation' then '교통정보'
+               else null
+               end
+            as name
+             , sum(count) as count
+          from views
+         where 1 = 1
+         <if test="id != null and id > 0">
+           and user_id = #{id}
+         </if>
+           and event_date  >= CURRENT_DATE - 7
+           and event_date  &lt;= CURRENT_DATE - 1
+         group by "type"
+		 order by name
+    </select>
+
+    <select id="selectDailyStatList" resultType="com.elbigs.dto.StatisticsDto">
+        with date_list as (
+        select a.date - b.idx as g_date, to_char(a.date - b.idx, 'd')::INTEGER  days
+          from ( select to_date(#{endDate}, 'YYYY-MM-DD') as date ) a
+         cross join ( select generate_series(0 , #{dayDiff} ) as idx ) b
+         order by g_date desc)
+        select v.user_id, u."name" as user_name
+             , k.agent_name
+             , k.mac_address
+             ,  dl.g_date as event_date
+             , v."count"
+             , sum(count) over ( partition by u."name", k.agent_name) as total
+             , round(avg(count) over ( partition by u."name", k.agent_name),2) as avg
+          from users u cross join date_list dl
+          left join kiosks k on k.user_id = u.id
+          left join daily_views v on  u.id = v.user_id and v.event_date = dl.g_date and v.kiosk_id = k.id
+        where u.id = #{userPk}
+        order by kiosk_id, event_date desc
+    </select>
+    <select id="selectDailyStatAllList" resultType="com.elbigs.dto.StatisticsDto">
+        with date_list as (
+        select a.date - b.idx as g_date, to_char(a.date - b.idx, 'd')::INTEGER  days
+          from ( select to_date(#{endDate}, 'YYYY-MM-DD') as date ) a
+         cross join ( select generate_series(0 , #{dayDiff} ) as idx ) b
+         order by g_date desc)
+        , data1 as (
+                select u.id, k.agent_name
+                     , u."name" as user_name
+                     , dl.g_date as event_date
+                     , v."count" as cnt
+                     , sum(count) over ( partition by k.id) as kiosk_sum
+                  from users u cross join date_list dl
+                  left join daily_views v on  u.id = v.user_id and v.event_date = dl.g_date
+                  left join kiosks k on v.kiosk_id = k.id
+                 where 1 = 1
+            <if test="searchStr!=null and searchStr!=''">
+        		   and u.name like '%'||#{searchStr}||'%'
+            </if>
+        ), data2 as (
+              select id, agent_name
+                   , sum(cnt)
+                   , row_number() over ( partition by id order by sum(cnt) desc) rn
+                   , row_number() over ( partition by id order by sum(cnt) asc) rn2
+                from data1 group by id, agent_name
+        )
+        select i5.*, sum("count") over ( partition by i5.id ) total, round(avg("count") over ( partition by i5.id), 2) "avg"
+          from (
+                select i1.id
+                     , user_name
+                     , event_date
+                     , sum(cnt) as "count"
+                     , i2.agent_name as max_agent
+                     , i3.agent_name as min_agent
+                  from data1 i1
+                  left join data2 i2 on i1.id = i2.id and i2.rn = 1
+                  left join data2 i3 on i1.id = i3.id and i3.rn2 = 1
+                 group by i1.id, user_name, event_date, i2.agent_name , i3.agent_name
+         ) i5
+         order by i5.user_name, event_date desc
+    </select>
+</mapper>

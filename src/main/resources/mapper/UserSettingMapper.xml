@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.elbigs.mapper.UserSettingMapper">
+    <select id="selectUserSetting" resultType="com.elbigs.dto.UserSettingDto">
+        select id
+             , user_id
+             , slogan1
+             , en_slogan1
+             , cn_slogan1
+             , jp_slogan1
+             , slogan1_bold
+             , slogan2
+             , en_slogan2
+             , cn_slogan2
+             , jp_slogan2
+             , slogan2_bold
+             , slogan3
+             , en_slogan3
+             , cn_slogan3
+             , jp_slogan3
+             , slogan3_bold
+             , tel
+             , open_time
+             , close_time
+             , created_at
+             , updated_at
+         from user_setting us
+        where user_id = #{userId}
+    </select>
+    <update id="updateUserSetting">
+          update user_setting set
+                 slogan1 = #{slogan1}
+               , en_slogan1 = #{enSlogan1}
+               , cn_slogan1 = #{cnSlogan1}
+               , jp_slogan1 = #{jpSlogan1}
+               , slogan1_bold = #{slogan1Bold}
+               , slogan2 = #{slogan2}
+               , en_slogan2 = #{enSlogan2}
+               , cn_slogan2 = #{cnSlogan2}
+               , jp_slogan2 = #{jpSlogan2}
+               , slogan2_bold = #{slogan2Bold}
+               , slogan3 = #{slogan3}
+               , en_slogan3 = #{enSlogan3}
+               , cn_slogan3 = #{cnSlogan3}
+               , jp_slogan3 = #{jpSlogan3}
+               , slogan3_bold = #{slogan3Bold}
+               , tel = #{tel}
+               , open_time = #{openTime}
+               , close_time = #{closeTime}
+               , updated_at = now()
+           where user_id = #{userId}
+    </update>
+     <select id="selectUserSettingId" resultType="java.lang.Long">
+          select id from user_setting us where user_id = #{userId}
+     </select>
+    <insert id="insertUserSetting">
+        insert into user_setting
+               ( user_id , slogan1, en_slogan1, cn_slogan1, jp_slogan1, slogan1_bold
+               , slogan2, en_slogan2, cn_slogan2, jp_slogan2, slogan2_bold
+               , slogan3, en_slogan3, cn_slogan3, jp_slogan3, slogan3_bold
+               , tel, open_time, close_time, created_at)
+        values ( #{userId}, #{slogan1}, #{enSlogan1}, #{cnSlogan1}, #{jpSlogan1}, #{slogan1Bold}
+               , #{slogan2}, #{enSlogan2}, #{cnSlogan2}, #{jpSlogan2}, #{slogan2Bold}
+               , #{slogan3}, #{enSlogan3}, #{cnSlogan3}, #{jpSlogan3}, #{slogan3Bold}
+               , #{tel}, #{openTime}, #{closeTime}, now() )
+        <selectKey keyProperty="id" resultType="long" order="AFTER">
+            select currval('user_setting_id_seq')
+        </selectKey>
+    </insert>
+</mapper>

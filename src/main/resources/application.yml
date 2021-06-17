@@ -1,0 +1,47 @@
+spring:
+  servlet:
+    encoding:
+      charset: UTF-8
+  mvc:
+    hiddenmethod:
+      filter:
+        enabled: true
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+  profiles:
+    active: local # 디폴트 환경
+  messages:
+    basename: i18n/message
+    encoding: UTF-8
+  jwt:
+    secret: elbigs!@#
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQL95Dialect
+    hibernate:
+      ddl-auto: none
+    properties:
+      javax:
+        persistence:
+          create-database-schemas: false
+      hibernate:
+        globally_quoted_identifiers: false
+        temp:
+          use_jdbc_metadata_defaults: false
+        format_sql: true
+    showSql: true
+    generate-ddl: false
+
+hibernate:
+  temp:
+    use_jdbc_metadata_defaults: false
+
+mybatis:
+  mapper-locations: mapper/**/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+
+external:
+  weather:
+    url: http://apis.data.go.kr/1360000/VilageFcstInfoService/getUltraSrtFcst
+
+

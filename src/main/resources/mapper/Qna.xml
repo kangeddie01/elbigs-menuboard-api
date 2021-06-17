@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.elbigs.mapper.QnaMapper">
+    <select id="selectQnaList" resultType="com.elbigs.dto.QnaDto">
+        select id, title
+             , content
+             , comment
+             , deleted_at
+             , created_at
+             , updated_at
+             , count(1) over() total_count
+          from qnas
+         where 1 = 1
+           and deleted_at is null
+           and user_id = #{userPk}
+        <if test="searchStr!=null and searchStr!=''">
+           and title like '%'|| #{searchStr} ||'%'
+        </if>
+        <if test="searchStr!=null and searchStr!=''">
+           and created_at between to_date(#{startDate}, 'yyyy-mm-dd') and to_date(#{endDate}, 'yyyy-mm-dd') + 1
+        </if>
+         order by updated_at desc
+        <if test="length > 0">
+         limit #{length} offset #{beginNo}
+        </if>
+    </select>
+    <select id="selectQna" resultType="com.elbigs.dto.QnaDto">
+        select id, title
+             , content
+             , comment
+             , deleted_at
+             , to_char(created_at , 'YYYY-MM-DD') as created_at
+             , to_char(updated_at , 'YYYY-MM-DD') as updated_at
+          from qnas
+         where 1 = 1
+           and id = #{id}
+    </select>
+    <insert id="insertQna" parameterType="com.elbigs.entity.QnaEntity">
+        insert into qnas
+               ( user_id, title, content, comment, created_at)
+        values ( #{userId}, #{title}, #{content}, #{comment}, now() )
+        <selectKey keyProperty="id" resultType="long" order="AFTER">
+            select currval('qnas_id_seq')
+        </selectKey>
+    </insert>
+   <update id="updateQna">
+        update qnas set
+               title = #{title}
+             , content = #{content}
+             , comment = #{comment}
+             , updated_at = now()
+         where id = #{id}
+    </update>
+    <update id="deleteQna">
+       update qnas
+          set deleted_at = now()
+        where id = #{id}
+    </update>
+</mapper>

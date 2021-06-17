@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.elbigs.mapper.BusStopMapper">
+    <select id="selectBusStopList" resultType="com.elbigs.dto.BusStopDto">
+        select id
+             , user_id
+             , city_code
+             , bus_stop_id
+             , "number"
+             , "name"
+             , city_name
+             , lat
+             , lng
+             , deleted_at
+             , created_at
+             , updated_at
+             , count(1) over() total_count
+          from bus_stops
+         where 1 = 1
+           and deleted_at is null
+           and user_id = #{userPk}
+        <if test="searchStr!=null and searchStr!=''">
+           and "name" like '%'|| #{searchStr} ||'%'
+        </if>
+        <if test="searchStr!=null and searchStr!=''">
+           and created_at between to_date(#{startDate}, 'yyyy-mm-dd') and to_date(#{endDate}, 'yyyy-mm-dd') + 1
+        </if>
+         order by "name" asc
+        <if test="length > 0">
+         limit #{length} offset #{beginNo}
+        </if>
+    </select>
+    <select id="selectBusStop" resultType="com.elbigs.dto.BusStopDto">
+        select id
+             , user_id
+             , city_code
+             , bus_stop_id
+             , "number"
+             , "name"
+             , city_name
+             , lat
+             , lng
+             , deleted_at
+             , to_char(created_at , 'YYYY-MM-DD') as created_at
+             , to_char(updated_at , 'YYYY-MM-DD') as updated_at
+          from bus_stops
+         where 1 = 1
+           and id = #{id}
+    </select>
+    <insert id="insertBusStop" parameterType="com.elbigs.entity.BusStopEntity">
+        insert into bus_stops
+               ( user_id, city_code, bus_stop_id, "number", "name", city_name, lat, lng, created_at)
+        values ( #{userId}, #{cityCode}, #{busStopId}, #{number}, #{name}, #{cityName}, #{lat}, #{lng}, now() )
+        <selectKey keyProperty="id" resultType="long" order="AFTER">
+            select currval('bus_stops_id_seq')
+        </selectKey>
+    </insert>
+   <update id="updateBusStop">
+        update bus_stops set
+               user_id = #{userId}
+             , city_code = #{cityCode}
+             , bus_stop_id = #{busStopId}
+             , "number" = #{number}
+             , "name" = #{name}
+             , city_name = #{cityName}
+             , lat = #{lat}
+             , lng = #{lng}
+             , updated_at = now()
+         where id = #{id}
+    </update>
+    <update id="deleteBusStop">
+       update bus_stops
+          set deleted_at = now()
+        where id = #{id}
+    </update>
+    <select id="selectBusRouteList" resultType="com.elbigs.entity.BusRouteEntity">
+        select * from bus_routes where bus_stop_id = #{busStopPk} order by route_number asc
+    </select>
+    <resultMap id="selectBusInfosResult" type="com.elbigs.dto.BusStopDto" autoMapping="true">
+        <id property="id" column="id"/>
+        <collection property="routes" column="route_number" autoMapping="true" ofType="com.elbigs.dto.BusRouteDto" />
+    </resultMap>
+    <select id="selectBusInfos" resultMap="selectBusInfosResult">
+        select bs.id
+             , bs."name" as stop_name
+             , bs."number" as stop_number
+             , route_number
+             , br.next_bus_stop
+             , replace(br.bus_type , '버스', '') bus_type
+             , case when  br.bus_type = '지선버스' then 'green'
+                    when  br.bus_type = '간선버스' then 'blue'
+                    when  br.bus_type = '좌석버스' then 'red'
+               end as bus_color
+             , bs.lat
+             , bs.lng
+          from bus_stops bs
+          join bus_routes br on bs.id = br.bus_stop_id
+         where bs.user_id = #{userPk}
+    </select>
+</mapper>

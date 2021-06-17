@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.elbigs.mapper.EventMapper">
+    <select id="selectEventList" resultType="com.elbigs.dto.EventDto">
+        select s.id
+             , to_char(s.start_date , 'YYYY-MM-DD') as start_date
+             , to_char(s.end_date , 'YYYY-MM-DD') as end_date
+             , s.title
+             , s.content
+             , s.tel
+             , to_char(s.created_at , 'YYYY-MM-DD') as created_at
+             , to_char(s.updated_at , 'YYYY-MM-DD') as updated_at
+             , count(1) over() total_count
+             , s.shop_status
+             , s.shop_id
+          from events s
+         where s.user_id = #{userPk}
+           and s.deleted_at is null
+        <if test="searchStr!=null and searchStr!=''">
+           and title like '%'|| #{searchStr} ||'%'
+        </if>
+       <if test="foSearch!=null and foSearch!=''">
+	       and now() between start_date and end_date + 1
+        </if>
+        <if test="startDate!=null and startDate!=''">
+           and created_at between to_date(#{startDate}, 'yyyy-mm-dd') and to_date(#{endDate}, 'yyyy-mm-dd') + 1
+        </if>
+         order by s.id
+        <if test="length > 0">
+         limit #{length} offset #{beginNo}
+        </if>
+    </select>
+    <select id="selectEvent" resultType="com.elbigs.dto.EventDto">
+          select s.id
+               , s.user_id
+               , shop_status
+               , s.shop_id
+               , s1.name as shop_name
+               , s.tel
+               , title
+               , en_title
+               , cn_title
+               , jp_title
+               , content
+               , en_content
+               , cn_content
+               , jp_content
+               , start_date
+               , end_date
+               , s.created_at
+               , s.updated_at
+               , s.deleted_at
+            from events s left outer join shops s1 on s.shop_id = s1.id
+           where s.id = #{id}
+    </select>
+    <insert id="insertEvent" parameterType="com.elbigs.entity.EventEntity">
+        insert into events (
+                    user_id
+                  , shop_status
+                  , shop_id
+                  , tel
+                  , title
+                  , en_title
+                  , cn_title
+                  , jp_title
+                  , content
+                  , en_content
+                  , cn_content
+                  , jp_content
+                  , start_date
+                  , end_date
+                  , created_at )
+        values (  #{userId}, #{shopStatus}, #{shopId}, #{tel}, #{title}, #{enTitle}, #{cnTitle}, #{jpTitle}
+                , #{content}, #{enContent}, #{cnContent}, #{jpContent}, TO_TIMESTAMP(#{startDate}, 'yyyy-mm-dd'), TO_TIMESTAMP(#{endDate}, 'yyyy-mm-dd'),now())
+        <selectKey keyProperty="id" resultType="long" order="AFTER">
+            select currval('events_id_seq')
+        </selectKey>
+    </insert>
+   <update id="updateEvent">
+           update events
+              set user_id = #{userId}
+                , shop_status = #{shopStatus}
+                , shop_id = #{shopId}
+                , tel = #{tel}
+                , title = #{title}
+                , en_title = #{enTitle}
+                , cn_title = #{cnTitle}
+                , jp_title = #{jpTitle}
+                , content = #{content}
+                , en_content = #{enContent}
+                , cn_content = #{cnContent}
+                , jp_content = #{jpContent}
+                , start_date = TO_TIMESTAMP(#{startDate}, 'yyyy-mm-dd')
+                , end_date = TO_TIMESTAMP(#{endDate}, 'yyyy-mm-dd')
+                , updated_at = now()
+            where id = #{id}
+    </update>
+    <update id="deleteEvent">
+       update events
+          set deleted_at = now()
+        where id = #{id}
+    </update>
+</mapper>

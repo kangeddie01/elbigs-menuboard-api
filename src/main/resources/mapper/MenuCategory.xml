@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.elbigs.mapper.MenuCategoryMapper">
+    <select id="selectUserMenuCategoryForFo" resultType="com.elbigs.dto.MenuCategoryDto">
+        select mc.id, mc."name" , mc.en_name , mc.cn_name , mc.jp_name
+             , (select full_path from files f where f.connectable_id = mc.id and f.connectable_type = 'App\Models\MenuCategory') as image
+          from menu_categories mc
+          join menu_category_user mcu on mc.id  = mcu.menu_category_id
+         where user_id = #{userPk}
+         order by mcu."order"
+    </select>
+    <select id="selectUserMenuCategoryrList" resultType="com.elbigs.dto.MenuCategoryDto">
+        select mcu.menu_category_id as "id"
+             , mcu."order"
+             , mc."name"
+             , mcu.is_show
+             , (select count(1)
+                 from shops s
+                 join menu_category_shop ms on s.id = ms.shop_id
+                where s.user_id = mcu.user_id
+                  and s.deleted_at is null
+                  and ms.menu_category_id = mcu.menu_category_id) as "count"
+             , (select full_path from files f where f.connectable_id = mc.id and f.connectable_type = 'App\Models\MenuCategory') as image
+          from menu_category_user mcu
+          join menu_categories mc on mcu.menu_category_id = mc.id
+         where mcu.user_id = #{userPk} and mc.type = 1
+         order by mcu."order"
+    </select>
+    <select id="selectUserMenuCategoryrList2" resultType="com.elbigs.dto.MenuCategoryDto">
+        select mcu.menu_category_id as "id"
+             , mcu."order"
+             , mc."name"
+             , mcu.is_show
+             , (select count(1)
+                 from facilities s
+                 join menu_category_facility ms on s.id = ms.facility_id
+                where s.user_id = mcu.user_id
+                  and s.deleted_at is null
+                  and ms.menu_category_id = mcu.menu_category_id) as "count"
+             , (select full_path from files f where f.connectable_id = mc.id and f.connectable_type = 'App\Models\MenuCategory') as image
+          from menu_category_user mcu
+          join menu_categories mc on mcu.menu_category_id = mc.id
+         where mcu.user_id = #{userPk} and mc.type = 2
+         order by mcu."order"
+    </select>
+    <update id="updateMenuCategoryShow">
+        update menu_category_user
+           set updated_at = now()
+             , is_show = #{show}
+         where user_id = #{userPk}
+           and menu_category_id = #{categoryId}
+    </update>
+    <update id="updateMenuCategoryOrder">
+        update menu_category_user
+           set updated_at = now()
+             , "order" = #{order}
+         where user_id = #{userId}
+           and menu_category_id = #{menuCategoryId}
+    </update>
+    <select id="selectUserMenuCategoryShopList" resultType="java.lang.Long">
+        select mc.id
+          from menu_category_shop mcs
+          join menu_categories mc on mcs.menu_category_id = mc.id
+         where shop_id = #{shopId}
+    </select>
+    <delete id="deleteMenuCategoryShop">
+        delete from menu_category_shop where shop_id = #{shopId}
+    </delete>
+    <insert id="insertMenuCategoryShop">
+        insert into menu_category_shop ( menu_category_id, shop_id, created_at)
+        values ( #{menuCategoryId}, #{shopId}, now() )
+    </insert>
+    <select id="selectUserMenuCategoryFacilityList" resultType="java.lang.Long">
+        select mc.id
+          from menu_category_facility mcs
+          join menu_categories mc on mcs.menu_category_id = mc.id
+         where facility_id = #{facilityId}
+    </select>
+    <delete id="deleteMenuCategoryFacility">
+        delete from menu_category_facility where facility_id = #{facilityId}
+    </delete>
+    <insert id="insertMenuCategoryFacility">
+        insert into menu_category_facility ( menu_category_id, facility_id, created_at)
+        values ( #{menuCategoryId}, #{facilityId}, now() )
+    </insert>
+</mapper>
