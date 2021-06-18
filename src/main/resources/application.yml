@@ -7,7 +7,7 @@ spring:
       filter:
         enabled: true
   jackson:
-    property-naming-strategy: SNAKE_CASE
+    property-naming-strategy: LOWER_CAMEL_CASE
   profiles:
     active: local # 디폴트 환경
   messages:

@@ -6,8 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.IOException;
+import javax.imageio.ImageIO;
+import javax.xml.bind.DatatypeConverter;
+import java.awt.image.BufferedImage;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
@@ -17,11 +19,31 @@ public class AzureBlobAdapter {
     @Autowired
     BlobClientBuilder client;
 
+    /**
+     * image data url 을 바이너리로 변환하여 Azure에 upload 하기
+     *
+     * @param imageDataUrl
+     * @param uploadedPath
+     * @return
+     */
+    public void upload(String imageDataUrl, String uploadedPath) {
+
+        try {
+
+            byte[] imagedata = DatatypeConverter.parseBase64Binary(imageDataUrl.substring(imageDataUrl.indexOf(",") + 1));
+            InputStream inputStream = new ByteArrayInputStream(imagedata);
+
+            client.blobName(uploadedPath).buildClient().upload(inputStream, imagedata.length, true);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
 
     public String upload(MultipartFile file, String uploadedPath) {
         if (file != null && file.getSize() > 0) {
             try {
-                String ext = file.getOriginalFilename().substring(file.getOriginalFilename().length() - 3);
                 System.out.println("fileName final : " + uploadedPath);
                 client.blobName(uploadedPath).buildClient().upload(file.getInputStream(), file.getSize());
                 return uploadedPath;

@@ -3,7 +3,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.elbigs.mapper.UserMapper">
+<mapper namespace="com.elbigs.mybatisMapper.UserMapper">
     <select id="selectUserListAll" resultType="com.elbigs.entity.UserEntity">
         select id
              , user_id
@@ -165,28 +165,6 @@
           from user_roles
          where user_id = #{userId}
     </select>
-    <insert id="insertFloor">
-        insert into floors ( user_id, "name", floor_id, "order", created_at)
-             values ( #{userId}, #{name}, #{floorId}, #{order}, now() )
-    </insert>
-    <insert id="insertKiosk">
-        insert into kiosks ( user_id, "key", mac_address, addr , "order", x, y, active, poi_id, floor_id, created_at, floor, agent_name)
-             values ( #{userId}, #{key}, #{macAddress}, #{addr}, #{order}, #{x}, #{y}, #{active}, #{poiId}, #{floorId}, now(), #{floor}, #{agentName} )
-    </insert>
-    <update id="updateKiosk">
-        update kiosks set
-               mac_address = #{macAddress}
-             , addr = #{addr}
-             , "order" = #{order}
-             , x = #{x}
-             , y = #{y}
-             , poi_id = #{poiId}
-             , floor_id = #{floorId}
-             , floor = #{floor}
-             , agent_name = #{agentName}
-             , updated_at = now()
-        where id = #{id}
-    </update>
     <insert id="insertUser" parameterType="com.elbigs.entity.UserEntity">
         insert into users ( user_id, "password", "name", email, phone, tel, city_code, master_yn, code, company_name, service_key
                           , area_x, area_y, map_client_id, map_client_secret, default_zoom, min_zoom, max_zoom
@@ -200,16 +178,6 @@
             select currval('users_id_seq')
         </selectKey>
     </insert>
-    <select id="selectKioskList" resultType="com.elbigs.entity.KioskEntity">
-        select id, user_id, "key", mac_address, addr , "order", x, y, active, poi_id, floor_id, created_at, floor, agent_name, updated_at
-          from kiosks
-         where user_id = #{userId}
-    </select>
-    <select id="selectFloorList" resultType="com.elbigs.entity.FloorEntity">
-        select user_id, "name", floor_id, "order", created_at, updated_at
-          from floors
-         where user_id = #{userId}
-    </select>
     <update id="updateUser">
         update users set
                "name" = #{name}
@@ -246,12 +214,6 @@
              , navi_speed = #{naviSpeed}
          where id = #{id}
     </update>
-    <delete id="deleteKioskById">
-        delete from kiosks where id = #{id}
-    </delete>
-    <delete id="deleteFloor">
-        delete from floors where user_id = #{userId}
-    </delete>
     <update id="updateUserForDelete">
         update users set
                deleted_at = now()
@@ -262,10 +224,4 @@
                password = #{password}
         where  id = #{id}
     </update>
-    <select id="selectKioskByMac" resultType="com.elbigs.entity.KioskEntity">
-        select * from kiosks where mac_address = #{macAddress}
-    </select>
-    <select id="selectKioskByKey" resultType="com.elbigs.entity.KioskEntity">
-        select * from kiosks where "key" = #{key}
-    </select>
 </mapper>

@@ -5,12 +5,18 @@ logging:
 
 spring:
   datasource:
-    url: jdbc:log4jdbc:postgresql://20.194.25.30:5432/dev_gov
+    url: jdbc:log4jdbc:postgresql://localhost:49153/postgres
     driver-class-name: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
-    username: dev_gov
-    password: Gov_el!
+    username: postgres
+    password: qwerasdf4$
     platform: all
-
+    jpa:
+      properties:
+        hibernate:
+          dialect: org.hibernate.dialect.PostgreSQLDialect
+          show_sql: true #하이버네이트가 실행하는 모든 SQL문을 콘솔로 출력해 준다.
+          format_sql: true  #콘솔에 출력되는 JPA 실행 쿼리를 가독성있게 표현한다.
+          use_sql_comments: true #디버깅이 용이하도록 SQL문 이외에 추가적인 정보를 출력해 준다.
   url:
     base: http://localhost:8080
   config:
@@ -39,3 +45,7 @@ file:
 
 weather:
   service-key: cfb5/nlGD1Pn1T9sIp6162DJW87nj0W4PHsn9sooKE6WD8pIM54BGnWQxtn7Ufk5gxIsr6y0UqYGqLZFUKD4kw==
+
+
+
+

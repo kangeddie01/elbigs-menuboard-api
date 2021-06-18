@@ -89,34 +89,6 @@ public class UserController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "access_token", required = true, dataType = "String", paramType = "header")
     })
-    @GetMapping("/users/{userPk}/setting")
-    public ResponsDto userSetting(@PathVariable(name = "userPk") long userPk) {
-
-        ResponsDto res = new ResponsDto();
-        UserSettingDto setting = userService.selectUserSetting(userPk);
-        res.put("settings", setting);
-        res.put("convert_settings", setting);
-        return res;
-    }
-
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "Authorization", value = "access_token", required = true, dataType = "String", paramType = "header")
-    })
-    @PutMapping("/users/{userPk}/setting")
-    public ResponsDto updateUserSetting(HttpServletRequest request, HttpServletResponse response
-            , @PathVariable(name = "userPk") long userPk) {
-
-        ResponsDto res = userService.updateUserSetting(request, userPk);
-
-        if (!res.isSuccess()) {
-            response.setStatus(HttpStatus.UNPROCESSABLE_ENTITY.value());
-        }
-        return res;
-    }
-
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "Authorization", value = "access_token", required = true, dataType = "String", paramType = "header")
-    })
     @GetMapping("/users/check/user_id")
     public ResponsDto userSetting(HttpServletResponse response, @RequestParam(name = "user_id") String userId) {
 

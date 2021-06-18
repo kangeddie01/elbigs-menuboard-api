@@ -53,7 +53,6 @@ public class UserEntity extends BaseEntity implements UserDetails {
     private boolean isAd;
     protected int naviSpeed;
 
-    private List<FloorEntity> floors;
     private boolean userIdConfirm;
 
     @Builder.Default

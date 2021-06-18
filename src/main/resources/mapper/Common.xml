@@ -3,29 +3,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.elbigs.mapper.CommonMapper">
-    <select id="selectInitialSearchList" resultType="com.elbigs.entity.InitialSearchEntity">
-        select id
-             , express_letter
-             , created_at
-             , updated_at
-          from initial_search
-    </select>
-    <select id="selectInitialSearchShopList" resultType="java.lang.Long">
-        select initial_search_id
-          from initial_search_shop iss
-         where shop_id = #{shopId}
-    </select>
-
-    <delete id="deleteInitialSearchShop">
-        delete from initial_search_shop where shop_id = #{shopId}
-    </delete>
-    <insert id="insertInitialSearchShop">
-        insert into initial_search_shop ( initial_search_id , shop_id, created_at)
-        values ( #{initialSearchId} , #{shopId}, now() )
-    </insert>
-
-
+<mapper namespace="com.elbigs.mybatisMapper.CommonMapper">
 
     <select id="selectFileList" resultType="com.elbigs.entity.FileEntity">
          select *
@@ -41,12 +19,5 @@
         insert into public.files
         ( connectable_id, connectable_type, file_number, origin_name, convert_name, full_path, "size", "type", mime_type, created_at)
         values (#{connectableId}, #{connectableType}, #{fileNumber}, #{originName}, #{convertName}, #{fullPath}, #{size}, #{type}, #{mimeType}, now());
-    </insert>
-    <select id="selectWeatherList" resultType="com.elbigs.entity.WeatherEntity">
-        select * from weather w where user_id = #{userPk}
-    </select>
-    <insert id="insertWeather">
-        insert into weather ( user_id, date, time, sky, img_file, temperature, created_at)
-             values ( #{userId}, #{date}, #{time}, #{sky}, #{imgFile}, #{temperature}, now())
     </insert>
 </mapper>
