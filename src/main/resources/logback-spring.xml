@@ -13,6 +13,9 @@
     <logger name="jdbc.audit"   level="warn"/>
     <logger name="com.zaxxer"   level="warn"/>
 
+	<logger name="jdbc.sqlonly" level="INFO" appender-ref="console-infolog" />
+	<logger name="jdbc.resultsettable" level="INFO" appender-ref="console-infolog" />
+
     <root level="info">
         <appender-ref ref="CONSOLE"/>
     </root>

@@ -1,7 +1,6 @@
 logging:
   level:
     root: debug
-    com.elbigs.bigsapi: debug
 
 spring:
   datasource:

@@ -59,7 +59,7 @@ public class ShopController {
     @GetMapping("/{shopId}")
     public ResponseDto2 selectShopDisplay(@PathVariable("shopId") long shopId) {
 
-        logger.info("test test test !!!!!!!!!!!!!!!!!!!");
+        logger.info("eddie eddie4 !!!!!!!!!!!!!!!!!!!");
 
         ResponseDto2<ShopEntity> res = new ResponseDto2();
         res.setSuccess(true);
