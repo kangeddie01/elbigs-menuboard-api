@@ -2,21 +2,20 @@ package com.elbigs.controller.cms;
 
 import com.elbigs.dto.ResponsDto;
 import com.elbigs.dto.ResponseDto2;
-import com.elbigs.dto.ShopDisaplyDto;
-import com.elbigs.entity.UserEntity;
 import com.elbigs.entity.menuboard.ShopDeviceEntity;
-import com.elbigs.entity.menuboard.ShopDisplayEntity;
 import com.elbigs.entity.menuboard.ShopEntity;
-import com.elbigs.service.DisplayService;
 import com.elbigs.service.ShopService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/v1/cms/shop")
 public class ShopController {
+
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
     private ShopService shopService;
@@ -32,9 +31,10 @@ public class ShopController {
 
         ResponsDto res = new ResponsDto();
 
+        entity.setPassword(BCrypt.hashpw(entity.getPassword(), BCrypt.gensalt()));
         shopService.saveShop(entity);
-
         res.put("shopId", entity.getShopId());
+
         return res;
     }
 
@@ -46,7 +46,7 @@ public class ShopController {
      */
     @PostMapping("/device")
     public ResponseDto2 saveShopDevice(@RequestBody ShopDeviceEntity entity) {
-        ResponseDto2<UserEntity> res = new ResponseDto2();
+        ResponseDto2<String> res = new ResponseDto2();
         return res;
     }
 
@@ -58,6 +58,9 @@ public class ShopController {
      */
     @GetMapping("/{shopId}")
     public ResponseDto2 selectShopDisplay(@PathVariable("shopId") long shopId) {
+
+        logger.info("test test test !!!!!!!!!!!!!!!!!!!");
+
         ResponseDto2<ShopEntity> res = new ResponseDto2();
         res.setSuccess(true);
         res.setData(shopService.selectShop(shopId));

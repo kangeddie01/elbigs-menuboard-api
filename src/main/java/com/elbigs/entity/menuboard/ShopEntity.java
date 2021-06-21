@@ -20,6 +20,8 @@ public class ShopEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long shopId;
     private String name;
+    private String loginId;
+    private String password;
     private int status;
     private String shopTypeCd;
     private String shopCategoryCd;

@@ -1,15 +1,15 @@
 logging:
   level:
-    root: info
-    com.elbigs: info
+    root: error
+    com.elbigs: error
+    com.zaxxer: error
+    sum.rmi: error
 
 spring:
   datasource:
-    url: jdbc:log4jdbc:postgresql://localhost:49153/postgres
-    driver-class-name: net.sf.log4jdbc.sql.jdbcapi.DriverSpy
-    username: postgres
+    url: jdbc:postgresql://database-1.cqxf7iilf4f6.ap-northeast-2.rds.amazonaws.com:5432/postgres
+    username: elbigs
     password: qwerasdf4$
-    platform: all
     jpa:
       properties:
         hibernate:
@@ -42,10 +42,3 @@ file:
   connectable-type-message: App\Models\Message
   connectable-type-qna: App\Models\Qna
   connectable-type-adver: App\Models\AdDetail
-
-weather:
-  service-key: cfb5/nlGD1Pn1T9sIp6162DJW87nj0W4PHsn9sooKE6WD8pIM54BGnWQxtn7Ufk5gxIsr6y0UqYGqLZFUKD4kw==
-
-
-
-

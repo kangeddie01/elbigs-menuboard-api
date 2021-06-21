@@ -1,5 +1,5 @@
 plugins {
-    id 'org.springframework.boot' version '2.4.5'
+    id 'org.springframework.boot' version '2.5.1'
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
     id 'java'
     id 'com.google.cloud.tools.jib' version '3.0.0'
@@ -20,6 +20,7 @@ repositories {
 }
 
 dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
@@ -28,8 +29,8 @@ dependencies {
     implementation 'io.springfox:springfox-swagger-ui:2.6.1'
     implementation 'net.rakugakibox.util:yaml-resource-bundle:1.1'
     implementation 'com.google.code.gson:gson'
+
     compileOnly 'org.projectlombok:lombok'
-    runtimeOnly 'com.h2database:h2'
     runtimeOnly 'org.postgresql:postgresql'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.security:spring-security-test'
@@ -42,8 +43,7 @@ dependencies {
     implementation 'javax.activation:activation:1.1.1'
     implementation group: 'com.azure', name: 'azure-storage-blob', version: '12.6.0'
 
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    runtimeOnly 'com.h2database:h2'
+
 }
 test {
     useJUnitPlatform()
@@ -53,7 +53,7 @@ ext.dockerId = 'kangeddie01'
 
 jib {
     to {
-        image = "${dockerId}/bogsapi:0.0.1"
+        image = "${dockerId}/menuboard-api:0.0.1"
         credHelper = "pass"
         tags = ['latest']
     }

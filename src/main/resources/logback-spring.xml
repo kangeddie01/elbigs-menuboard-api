@@ -1,0 +1,20 @@
+<configuration>
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>
+                [%-5level] %d{HH:mm:ss.SSS} [%thread %c %F] %method - %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+    <logger name="com.elbigs"   level="info"/>
+    <logger name="org"          level="info"/>
+    <logger name="javax"        level="info"/>
+    <logger name="sun"          level="info"/>
+    <logger name="jdbc.audit"   level="warn"/>
+    <logger name="com.zaxxer"   level="warn"/>
+
+    <root level="info">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+
+</configuration>

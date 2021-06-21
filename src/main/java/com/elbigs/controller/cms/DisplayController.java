@@ -2,7 +2,6 @@ package com.elbigs.controller.cms;
 
 import com.elbigs.dto.ResponseDto2;
 import com.elbigs.dto.ShopDisaplyDto;
-import com.elbigs.entity.UserEntity;
 import com.elbigs.entity.menuboard.ShopDeviceEntity;
 import com.elbigs.entity.menuboard.ShopDisplayEntity;
 import com.elbigs.service.DisplayService;
@@ -19,6 +18,19 @@ public class DisplayController {
     @Autowired
     private DisplayService displayService;
 
+    /**
+     * 전시 정보 등록
+     *
+     * @param dto
+     * @return
+     */
+    @PostMapping("/{shopId}/test")
+    public ResponseDto2 test(@RequestBody ShopDisaplyDto dto, @PathVariable("shopId") long shopId) {
+        ResponseDto2<String> res = new ResponseDto2();
+        dto.setShopId(shopId);
+        displayService.saveContent(dto);
+        return res;
+    }
 
     /**
      * 전시 정보 등록
@@ -28,7 +40,7 @@ public class DisplayController {
      */
     @PostMapping("/{shopId}/shop-display")
     public ResponseDto2 saveContent(@RequestBody ShopDisaplyDto dto, @PathVariable("shopId") long shopId) {
-        ResponseDto2<UserEntity> res = new ResponseDto2();
+        ResponseDto2<String> res = new ResponseDto2();
         dto.setShopId(shopId);
         displayService.saveContent(dto);
         return res;
@@ -44,7 +56,7 @@ public class DisplayController {
     public ResponseDto2 saveContent(@RequestBody ShopDisaplyDto dto
             , @PathVariable("shopId") long shopId
             , @PathVariable("shopDisplayId") long shopDisplayId) {
-        ResponseDto2<UserEntity> res = new ResponseDto2();
+        ResponseDto2<String> res = new ResponseDto2();
         dto.setShopId(shopId);
         dto.setShopDisplayId(shopDisplayId);
         displayService.saveContent(dto);
@@ -62,7 +74,7 @@ public class DisplayController {
     public ResponseDto2 saveShopDeviceDisplay(@RequestBody ShopDeviceEntity dto
             , @PathVariable("shopId") long shopId
             , @PathVariable("shopDeviceId") long shopDeviceId) {
-        ResponseDto2<UserEntity> res = new ResponseDto2();
+        ResponseDto2<String> res = new ResponseDto2();
         dto.setShopId(shopId);
         dto.setShopDeviceId(shopDeviceId);
         displayService.saveShopDeviceDisplay(dto);

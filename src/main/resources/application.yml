@@ -39,9 +39,3 @@ mybatis:
   mapper-locations: mapper/**/*.xml
   configuration:
     map-underscore-to-camel-case: true
-
-external:
-  weather:
-    url: http://apis.data.go.kr/1360000/VilageFcstInfoService/getUltraSrtFcst
-
-
