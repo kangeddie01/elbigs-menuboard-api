@@ -29,6 +29,12 @@ blob:
   account-key: Jopdk4SDzmdymKtUQ5wMLBUfhglSRRynU1gsT+Aw0N2j8oOuzRd4W9N2q1kIBUhrypa7kLzD3mki8EE+C5PuyA==
   default-endpoints-protocol: https
 
+html:
+  display:
+    path: /usr/share/nginx/html/displays
+  template:
+    path: /usr/share/nginx/html/template
+
 file:
   connectable-type-shop: App\Models\Shop
   connectable-type-facility: App\Models\Facility

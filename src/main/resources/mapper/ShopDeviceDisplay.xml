@@ -3,10 +3,19 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.elbigs.mybatisMapper.EventMapper">
+<mapper namespace="com.elbigs.mybatisMapper.ShopDeviceMapper">
     <update id="updateShopDeviceDisplay">
        update shop_device
           set shop_display_id = #{shopDisplayId}
         where shop_device_id = #{shopDeviceId}
     </update>
+    <select id="selectShopDeviceList" resultType = "com.elbigs.dto.ShopDeviceDto">
+        select sd.*
+             , (select sd3.preview_image_path
+                  from shop_display sd3
+                 where sd3.shop_display_id = sd.shop_display_id) as preview_image_path
+         from shop_device sd
+        where sd.shop_id = #{shopId}
+        order by sd.sort_no
+    </select>
 </mapper>

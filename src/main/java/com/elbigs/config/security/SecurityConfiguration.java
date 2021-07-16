@@ -35,8 +35,10 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .and()
                 .authorizeRequests() // 다음 리퀘스트에 대한 사용권한 체크
                 .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
-                .antMatchers("/**/download", "/exception/**", "/**/user ", "/**/logout", "/*/login", "/**/login/**", "/api/kiosk/**", "/test/**").permitAll() // 가입 및 인증 주소는 누구나 접근가능
-                .antMatchers(HttpMethod.GET, "**/users", " * */error", " / exception/**", "/actuator/health", "/favicon.ico").permitAll() // 등록된 GET요청 리소스는 누구나 접근가능
+                .antMatchers("/v1/cms/file/**", "/**/download", "**/error", "/exception/**", "/test/**").permitAll() // 기타 허용 URL
+                .antMatchers(HttpMethod.GET, "/**/logout", "/favicon.ico").permitAll() // GET 허용 URL
+                .antMatchers(HttpMethod.POST, "/v1/cms/shop", "/*/login", "/**/login/**").permitAll() // POST 허용 URL
+                .antMatchers(HttpMethod.GET, "/v1/cms/shop/list").hasRole("ADMIN") // ADMIN 허용 URL
                 .anyRequest().hasRole("USER") // 그외 나머지 요청은 모두 인증된 회원만 접근 가능
                 .and()
                 .exceptionHandling().accessDeniedHandler(new CustomAccessDeniedHandler())
@@ -49,8 +51,10 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     @Override // ignore swagger security config
     public void configure(WebSecurity web) {
-        web.ignoring().antMatchers("/v2/api-docs", "/swagger-resources/**",
-                "/swagger-ui.html", "/webjars/**", "/swagger/**", "/v1/cms/**");
+//        web.ignoring().antMatchers("/v2/api-docs", "/swagger-resources/**",
+//                "/swagger-ui.html", "/webjars/**", "/swagger/**", "/v1/cms/**", "**.txt");
+
+        web.ignoring().antMatchers("*", "**", "**/**");
 
     }
 }

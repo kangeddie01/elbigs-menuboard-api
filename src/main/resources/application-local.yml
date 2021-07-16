@@ -29,6 +29,12 @@ blob:
   account-key: Jopdk4SDzmdymKtUQ5wMLBUfhglSRRynU1gsT+Aw0N2j8oOuzRd4W9N2q1kIBUhrypa7kLzD3mki8EE+C5PuyA==
   default-endpoints-protocol: https
 
+html:
+  display:
+    path: C:\project\elbigs\elbigs-menuboard-api\src\main\webapp\displays
+  template:
+    path: C:\project\elbigs\elbigs-menuboard-api\src\main\webapp\template
+
 file:
   connectable-type-shop: App\Models\Shop
   connectable-type-facility: App\Models\Facility

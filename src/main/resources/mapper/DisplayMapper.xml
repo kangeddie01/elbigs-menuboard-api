@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.elbigs.mybatisMapper.DisplayMapper">
+    <select id="selectMediaLibList1" resultType="com.elbigs.entity.MediaLibEntity">
+        select *
+          from media_lib ml
+         where ml.media_type in ( 'I', 'V' )
+           and ml.media_category_id = #{mediaCategoryId}
+         order by updated_at desc, created_at desc
+    </select>
+    <select id="selectTemplateCategoryList" resultType="com.elbigs.entity.TemplateCategoryEntity">
+        with recursive cte as (
+        select ARRAY[sort_no] AS hierarchy
+             , template_category_id
+             , name
+             , upper_category_id
+             , sort_no
+             , 1 as level
+          from template_category
+         where upper_category_id is null
+         union all
+        select c.hierarchy || c.sort_no
+             , e.template_category_id
+             , e.name
+             , e.upper_category_id
+             , e.sort_no
+             , c.level + 1
+          from cte c
+          join template_category e on e.upper_category_id = c.template_category_id
+        )
+        select *
+          from cte
+         order by hierarchy
+    </select>
+</mapper>

@@ -38,9 +38,36 @@ public class AzureBlobAdapter {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void upload(InputStream inputStream, String uploadedPath, int length) {
+
+        try {
+            client.blobName(uploadedPath).buildClient().upload(inputStream, length, true);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
     }
 
+    /**
+     * 로컬 파일을 업로드 한다.
+     *
+     * @param uploadedPath 업로드할 경로
+     * @param localFilePath     업로드할 파일 디스크 경로
+     */
+    public void uploadLocalFile(String uploadedPath, String localFilePath) {
+        client.blobName(uploadedPath).buildClient().uploadFromFile(localFilePath, true);
+    }
+
+    /**
+     * multipart file upload
+     *
+     * @param file
+     * @param uploadedPath
+     * @return
+     */
     public String upload(MultipartFile file, String uploadedPath) {
         if (file != null && file.getSize() > 0) {
             try {
@@ -53,6 +80,7 @@ public class AzureBlobAdapter {
         }
         return null;
     }
+
 
     public byte[] getFile(String name) {
         try {

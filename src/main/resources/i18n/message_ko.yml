@@ -40,3 +40,4 @@ error:
     change-password1: "입력한 두 비밀번호가 일치하지 않습니다."
     change-password2: "이전 비밀번호가 일치하지 않습니다."
     change-password3: "6자 이상 입력 바랍니다."
+    exist-user: "이미 존재하는 아이디 입니다."

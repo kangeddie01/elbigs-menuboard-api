@@ -1,6 +1,6 @@
 package com.elbigs.dto;
 
-import com.elbigs.entity.ShopDisplayEntity;
+import com.elbigs.entity.ShopDeviceEntity;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
@@ -8,10 +8,7 @@ import lombok.Data;
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonAutoDetect
-public class ShopDisaplyDto extends ShopDisplayEntity {
+public class ShopDeviceDto extends ShopDeviceEntity {
 
-    private String previewDataUrl;
-    private Long htmlTemplateId;
-    private String displayHtml;
-
+    private String previewImagePath;
 }

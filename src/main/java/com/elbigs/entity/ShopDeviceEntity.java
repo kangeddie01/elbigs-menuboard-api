@@ -1,8 +1,6 @@
-package com.elbigs.entity.menuboard;
+package com.elbigs.entity;
 
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
@@ -19,8 +17,13 @@ public class ShopDeviceEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long shopDeviceId;
     private Long shopId;
+    private int sortNo = 0;
+    private String panelId;
+    private String panelMaker;
+    private String panelSize;
+    private String screenRatio;
+    private String settopId;
     private int status; //0.deactive, 1.active, 2.modified
     private Long shopDisplayId;
-    private String deviceSerial;
     private Timestamp lastCheckAt;
 }

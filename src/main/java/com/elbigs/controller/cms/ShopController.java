@@ -1,15 +1,18 @@
 package com.elbigs.controller.cms;
 
-import com.elbigs.dto.ResponsDto;
-import com.elbigs.dto.ResponseDto2;
-import com.elbigs.entity.menuboard.ShopDeviceEntity;
-import com.elbigs.entity.menuboard.ShopEntity;
+import com.elbigs.dto.*;
+import com.elbigs.entity.ShopDeviceEntity;
+import com.elbigs.entity.ShopEntity;
 import com.elbigs.service.ShopService;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/v1/cms/shop")
@@ -21,18 +24,40 @@ public class ShopController {
     private ShopService shopService;
 
     /**
-     * 매장 정보 저장
+     * 매장 정보 등록
      *
      * @param entity
      * @return
      */
-    @PostMapping("/")
-    public ResponsDto saveShop(@RequestBody ShopEntity entity) {
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "access_token", required = true, dataType = "String", paramType = "header")
+    })
+    @PostMapping
+    public ResponseDto createShop(@RequestBody ShopEntity entity) {
 
-        ResponsDto res = new ResponsDto();
+        ResponseDto res = shopService.saveShop(entity);
 
-        entity.setPassword(BCrypt.hashpw(entity.getPassword(), BCrypt.gensalt()));
+        res.put("shopId", entity.getShopId());
+
+        return res;
+    }
+
+    /**
+     * 매장 정보 수정
+     *
+     * @param entity
+     * @return
+     */
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "access_token", required = true, dataType = "String", paramType = "header")
+    })
+    @PutMapping("/{shopId}")
+    public ResponseDto saveShop(@RequestBody ShopEntity entity, @PathVariable("shopId") long shopId) {
+
+        ResponseDto res = new ResponseDto();
+        entity.setShopId(shopId);
         shopService.saveShop(entity);
+
         res.put("shopId", entity.getShopId());
 
         return res;
@@ -44,6 +69,9 @@ public class ShopController {
      * @param entity
      * @return
      */
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "access_token", required = true, dataType = "String", paramType = "header")
+    })
     @PostMapping("/device")
     public ResponseDto2 saveShopDevice(@RequestBody ShopDeviceEntity entity) {
         ResponseDto2<String> res = new ResponseDto2();
@@ -56,10 +84,11 @@ public class ShopController {
      * @param shopId
      * @return
      */
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "access_token", required = true, dataType = "String", paramType = "header")
+    })
     @GetMapping("/{shopId}")
     public ResponseDto2 selectShopDisplay(@PathVariable("shopId") long shopId) {
-
-        logger.info("eddie eddie5 !!!!!!!!!!!!!!!!!!!");
 
         ResponseDto2<ShopEntity> res = new ResponseDto2();
         res.setSuccess(true);
@@ -68,15 +97,28 @@ public class ShopController {
     }
 
     /**
-     * 매장 전치 리스트
+     * 매장 리스트
      *
      * @return
      */
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "access_token", required = true, dataType = "String", paramType = "header")
+    })
     @GetMapping("/list")
-    public ResponseDto2 selectShopList() {
-        ResponseDto2<Iterable<ShopEntity>> res = new ResponseDto2();
-        res.setSuccess(true);
-        res.setData(shopService.selectShopList());
-        return res;
+    public ListResponseDto selectShopList(PagingParam param) {
+
+        List<ShopEntity> list = shopService.selectShopList(param);
+        int totalCount = 0;
+
+        if (list != null && list.size() > 0) {
+            totalCount = list.get(0).getTotalCount();
+        }
+
+        return ListResponseDto.<ShopEntity>builder()
+                .totalCount(totalCount)
+                .page(param.getPage())
+                .length(param.getLength())
+                .list(list)
+                .build();
     }
 }

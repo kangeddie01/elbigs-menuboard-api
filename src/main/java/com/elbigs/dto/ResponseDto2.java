@@ -12,4 +12,5 @@ public class ResponseDto2<T> extends CommonResponseDto{
     private String token;
     private Map user;
     private List<Map<String, Object>> users;
+
 }

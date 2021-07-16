@@ -1,11 +1,8 @@
-package com.elbigs.entity.menuboard;
+package com.elbigs.entity;
 
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
-import java.util.Date;
 
 @Builder
 @Getter
@@ -20,8 +17,9 @@ public class ShopDisplayEntity extends BaseEntity {
     private Long shopDisplayId;
     private Long shopId;
     private int status;
+    private String screenRatio;
     private String displayName;
-    private String displayHtml;
+//    private String displayHtml;
     private String downloadPath;
     private String previewImagePath;
 }

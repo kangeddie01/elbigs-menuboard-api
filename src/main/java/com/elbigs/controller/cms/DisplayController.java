@@ -1,36 +1,32 @@
 package com.elbigs.controller.cms;
 
+import com.elbigs.dto.FileDto;
 import com.elbigs.dto.ResponseDto2;
+import com.elbigs.dto.ShopDeviceDto;
 import com.elbigs.dto.ShopDisaplyDto;
-import com.elbigs.entity.menuboard.ShopDeviceEntity;
-import com.elbigs.entity.menuboard.ShopDisplayEntity;
+import com.elbigs.entity.*;
 import com.elbigs.service.DisplayService;
+import com.elbigs.util.DateUtil;
+import com.elbigs.util.ElbigsUtil;
+import com.elbigs.util.FileUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 
+import java.util.Iterator;
 import java.util.List;
 
 @RestController
 @RequestMapping("/v1/cms")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class DisplayController {
 
 
     @Autowired
     private DisplayService displayService;
 
-    /**
-     * 전시 정보 등록
-     *
-     * @param dto
-     * @return
-     */
-    @PostMapping("/{shopId}/test")
-    public ResponseDto2 test(@RequestBody ShopDisaplyDto dto, @PathVariable("shopId") long shopId) {
-        ResponseDto2<String> res = new ResponseDto2();
-        dto.setShopId(shopId);
-        displayService.saveContent(dto);
-        return res;
-    }
 
     /**
      * 전시 정보 등록
@@ -40,11 +36,20 @@ public class DisplayController {
      */
     @PostMapping("/{shopId}/shop-display")
     public ResponseDto2 saveContent(@RequestBody ShopDisaplyDto dto, @PathVariable("shopId") long shopId) {
-        ResponseDto2<String> res = new ResponseDto2();
+        ResponseDto2<ShopDisplayEntity> res = new ResponseDto2();
+
+        if (!StringUtils.hasLength(dto.getDisplayHtml())) {
+            res.setSuccess(false);
+            return res;
+        }
         dto.setShopId(shopId);
-        displayService.saveContent(dto);
+
+        res.setData(displayService.saveContent(dto));
+        res.setSuccess(true);
+
         return res;
     }
+
 
     /**
      * 전시 정보 수정
@@ -52,19 +57,19 @@ public class DisplayController {
      * @param dto
      * @return
      */
-    @PutMapping("/{shopId}/shop-displays/{shopDisplayId}")
-    public ResponseDto2 saveContent(@RequestBody ShopDisaplyDto dto
-            , @PathVariable("shopId") long shopId
-            , @PathVariable("shopDisplayId") long shopDisplayId) {
-        ResponseDto2<String> res = new ResponseDto2();
-        dto.setShopId(shopId);
-        dto.setShopDisplayId(shopDisplayId);
-        displayService.saveContent(dto);
-        return res;
-    }
+//    @PutMapping("/{shopId}/shop-displays/{shopDisplayId}")
+//    public ResponseDto2 saveContent(@RequestBody ShopDisaplyDto dto
+//            , @PathVariable("shopId") long shopId
+//            , @PathVariable("shopDisplayId") long shopDisplayId) {
+//        ResponseDto2<String> res = new ResponseDto2();
+//        dto.setShopId(shopId);
+//        dto.setShopDisplayId(shopDisplayId);
+//        displayService.saveContent(dto);
+//        return res;
+//    }
 
     /**
-     * 디바이스 -
+     * 디바이스 저장
      *
      * @param dto
      * @param shopId
@@ -82,13 +87,44 @@ public class DisplayController {
     }
 
     /**
+     * panel-display mapping
+     * @param dto
+     * @param shopId
+     * @return
+     */
+    @PutMapping("/{shopId}/panel-display-mapping")
+    public ResponseDto2 updateDeviceDisplayMapping(@RequestBody ShopDeviceEntity dto
+            , @PathVariable("shopId") long shopId) {
+        ResponseDto2<String> res = new ResponseDto2();
+        displayService.updateDeviceDisplayMapping(dto);
+        res.setSuccess(true);
+        return res;
+    }
+
+    /**
+     * delete display
+     * @param shopId
+     * @param shopDisplayId
+     * @return
+     */
+    @DeleteMapping("/{shopId}/shop-displays/{shopDisplayId}")
+    public ResponseDto2 deleteShopDisplay(@PathVariable("shopId") long shopId, @PathVariable("shopDisplayId") long shopDisplayId) {
+        ResponseDto2<String> res = new ResponseDto2();
+        displayService.deleteShopDisplay(shopDisplayId);
+        res.setSuccess(true);
+        return res;
+    }
+
+
+    /**
      * 전시 상세조회
      *
      * @param shopDisplayId
      * @return
      */
-    @GetMapping("/{shopDisplayId}")
-    public ResponseDto2 selectShopDisplay(@PathVariable("shopDisplayId") long shopDisplayId) {
+    @GetMapping("/{shopId}/shop-displays/{shopDisplayId}")
+    public ResponseDto2 selectShopDisplay(@PathVariable("shopId") long shopId
+            , @PathVariable("shopDisplayId") long shopDisplayId) {
         ResponseDto2<ShopDisplayEntity> res = new ResponseDto2();
         res.setData(displayService.selectShopDisplay(shopDisplayId));
         return res;
@@ -100,10 +136,94 @@ public class DisplayController {
      * @param shopId
      * @return
      */
-    @GetMapping("/{shopId}/list")
-    public ResponseDto2 selectShopDisplayList(@PathVariable("shopId") long shopId) {
+    @GetMapping("/{shopId}/shop-displays")
+    public ResponseDto2 selectShopDisplayList(@PathVariable("shopId") long shopId,
+                                              @RequestParam("screenRatio") String screenRatio) {
         ResponseDto2<List<ShopDisplayEntity>> res = new ResponseDto2();
-        res.setData(displayService.selectShopDisplayList(shopId));
+        res.setData(displayService.selectShopDisplayList(shopId, screenRatio));
         return res;
     }
+
+    @GetMapping("/{shopId}/shop-devices")
+    public ResponseDto2 selectShopDeviceList(@PathVariable("shopId") long shopId) {
+        ResponseDto2<List<ShopDeviceDto>> res = new ResponseDto2();
+        res.setData(displayService.selectShopDeviceList(shopId));
+        return res;
+    }
+
+    @GetMapping("/media-libs")
+    public ResponseDto2 selectMediaLibList(
+            @RequestParam(required = false, value = "mediaCategoryId") Long mediaCategoryId
+            , @RequestParam(required = false, value = "mediaType") String mediaType) {
+        ResponseDto2<List<MediaLibEntity>> res = new ResponseDto2();
+        if ("All".equals(mediaType) && mediaCategoryId != null) {// 전체 (이미지, 동영상)
+            res.setData(displayService.selectMediaLibList(mediaCategoryId));
+        } else if (mediaType != null) {// 뱃지 or 이미지 or 아이콘
+            res.setData(displayService.selectMediaLibList(mediaCategoryId, mediaType));
+        }
+
+        res.setSuccess(true);
+        return res;
+    }
+
+    @PostMapping("/media-libs/upload")
+    public ResponseDto2<MediaLibEntity> uploadFile(@RequestPart List<MultipartFile> file,
+                                                   @RequestParam("mediaType") String mediaType) {
+        ResponseDto2<MediaLibEntity> res = new ResponseDto2();
+
+        MediaLibEntity param = new MediaLibEntity();
+        param.setMediaType(mediaType);
+        MediaLibEntity newLib = displayService.insertMediaLib(file.get(0), param);
+        res.setData(newLib);
+        return res;
+
+    }
+
+    @GetMapping("/media-categorys")
+    public ResponseDto2 selectMediaCategoryList() {
+        ResponseDto2<List<MediaCategoryEntity>> res = new ResponseDto2();
+        res.setData(displayService.selectMediaCategoryList());
+        res.setSuccess(true);
+        return res;
+    }
+
+//    @GetMapping("/template-categorys")
+//    public ResponseDto2 selectTemplateCategoryList() {
+//        ResponseDto2<List<TemplateCategoryEntity>> res = new ResponseDto2();
+//        res.setData(displayService.selectTemplateCategoryList());
+//        res.setSuccess(true);
+//        return res;
+//    }
+
+    @GetMapping("/template-categorys")
+    public ResponseDto2 selectTemplateCategoryList2(@RequestParam(required = true, value = "upperCategoryId") Long upperCategoryId) {
+        ResponseDto2<List<TemplateCategoryEntity>> res = new ResponseDto2();
+        res.setData(displayService.selectTemplateCategoryListByUpper(upperCategoryId));
+        res.setSuccess(true);
+        return res;
+    }
+
+    @GetMapping("/display-templates/recommend")
+    public ResponseDto2 selectRecommendTEmplateList(
+            @RequestParam(required = false, value = "templateCategoryId") Long templateCategoryId
+    ) {
+        ResponseDto2<List<HtmlTemplateEntity>> res = new ResponseDto2();
+        res.setData(displayService.selectRecommendTemplateList(templateCategoryId));
+        res.setSuccess(true);
+        return res;
+    }
+
+    @GetMapping("/display-templates")
+    public ResponseDto2 selectRecommendTEmplateList(
+            @RequestParam(required = false, value = "templateCategoryId") Long templateCategoryId,
+            @RequestParam(required = false, value = "screenRatio") String screenRatio,
+            @RequestParam(required = false, value = "orderBy") String orderBy
+    ) {
+        ResponseDto2<List<HtmlTemplateEntity>> res = new ResponseDto2();
+        res.setData(displayService.selectTemplateList(templateCategoryId, screenRatio));
+        res.setSuccess(true);
+        return res;
+    }
+
+
 }

@@ -1,49 +1,158 @@
 package com.elbigs.service;
 
-import com.elbigs.entity.menuboard.ShopDeviceEntity;
-import com.elbigs.entity.menuboard.ShopEntity;
+import com.elbigs.dto.PagingParam;
+import com.elbigs.dto.ResponseDto;
+import com.elbigs.entity.CmsUserEntity;
+import com.elbigs.entity.ShopDeviceEntity;
+import com.elbigs.entity.ShopEntity;
+import com.elbigs.entity.UserRolesEntity;
+import com.elbigs.jpaRepository.CmsUserRepo;
+import com.elbigs.jpaRepository.ShopDeviceRepo;
 import com.elbigs.jpaRepository.ShopRepo;
+import com.elbigs.jpaRepository.UserRolesRepo;
+import com.elbigs.mybatisMapper.ShopMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
-import java.util.Arrays;
 import java.util.List;
 
 @Service
-public class ShopService {
+public class ShopService extends CommonService {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
     private ShopRepo shopRepo;
+
+    @Autowired
+    private CmsUserRepo cmsUserRepo;
+
+    @Autowired
+    private ShopMapper shopMapper;
+
+    @Autowired
+    private UserRolesRepo userRolesRepo;
+
+    @Autowired
+    private ShopDeviceRepo shopDeviceRepo;
+
     @Autowired
     private DisplayService displayService;
 
+    private ResponseDto validateShop(ShopEntity shopEntity, boolean isNew) {
+        ResponseDto res = new ResponseDto();
+
+        String requireMsg = getMessage("error.msg.required");
+
+        // 필수 체크
+        if (!StringUtils.hasLength(shopEntity.getName())) {
+            res.addErrors("name", requireMsg);
+        }
+
+        if (isNew) {
+
+            // 사용자 정보 필수 체크
+            if (shopEntity.getUser() == null) {
+                res.addErrors("user.loginId", requireMsg);
+                res.addErrors("user.password", requireMsg);
+            } else {
+
+                // 로그인 아이디 체크
+                if (!StringUtils.hasLength(shopEntity.getUser().getLoginId())) {
+                    res.addErrors("user.loginId", requireMsg);
+                } else {
+
+                    CmsUserEntity user = cmsUserRepo.findByLoginId(shopEntity.getUser().getLoginId());
+                    if (user != null) {
+                        res.addErrors("user.loginId", getMessage("error.msg.exist-user"));
+                    }
+
+                }
+
+                // 패스워드 체크
+                boolean passwordExists = true;
+                if (!StringUtils.hasLength(shopEntity.getUser().getPassword())) {
+                    res.addErrors("user.password", requireMsg);
+                    passwordExists = false;
+                }
+                if (!StringUtils.hasLength(shopEntity.getUser().getPasswordConfirm())) {
+                    res.addErrors("user.passwordConfirm", requireMsg);
+                    passwordExists = false;
+                }
+
+                if (passwordExists) {
+                    logger.info("password length : " + shopEntity.getUser().getPassword().length());
+                    if (shopEntity.getUser().getPassword().length() < 6) {
+                        res.addErrors("user.password", getMessage("error.msg.change-password3"));
+                    } else if (!shopEntity.getUser().getPassword().equals(shopEntity.getUser().getPasswordConfirm())) {
+                        res.addErrors("user.password", getMessage("error.msg.change-password1"));
+                        res.addErrors("user.passwordConfirm", getMessage("error.msg.change-password1"));
+                    }
+                }
+
+            }
+        }
+
+
+        return res;
+    }
+
     @Transactional
-    public void saveShop(ShopEntity entity) {
+    public ResponseDto saveShop(ShopEntity entity) {
 
         boolean isNew = true;
         long shopId = 0;
         if (entity.getShopId() != null) {
             isNew = false;
         }
+
+        // 유효성 체크 : 필수값, 형식, 길이 등
+        ResponseDto validationRes = validateShop(entity, isNew);
+
+        if (!validationRes.isSuccess()) {
+            return validationRes;
+        }
+
+        // shop 등록
         shopRepo.save(entity);
         shopId = entity.getShopId();
+
+        // 유저등록
+        entity.getUser().setShopId(shopId);
+        if (isNew) {
+            entity.getUser().setPassword(BCrypt.hashpw(entity.getUser().getPassword(), BCrypt.gensalt()));
+        }
+        cmsUserRepo.save(entity.getUser());
+
+        if (isNew) {
+            UserRolesEntity userRolesEntity = new UserRolesEntity();
+            userRolesEntity.setLoginId(entity.getUser().getLoginId());
+            userRolesEntity.setRoles("ROLE_USER");
+            userRolesRepo.save(userRolesEntity);
+        }
 
         List<ShopDeviceEntity> shopDevices = entity.getShopDevices();
 
         // 매장 디바이스 저장
         displayService.saveShopDeviceAll(isNew, shopId, shopDevices);
+
+        return validationRes;
     }
 
     public ShopEntity selectShop(long shopId) {
-        return shopRepo.findById(shopId);
+        ShopEntity shop = shopRepo.findById(shopId);
+        shop.setUser(cmsUserRepo.findByShopId(shopId));
+        shop.setShopDevices(shopDeviceRepo.findByShopIdOrderBySortNoAsc(shopId));
+        return shop;
     }
 
-    public Iterable<ShopEntity> selectShopList() {
-        return shopRepo.findAll();
+    public List<ShopEntity> selectShopList(PagingParam param) {
+        return shopMapper.selectShopList(param);
     }
+
 }
