@@ -235,7 +235,7 @@ public class DisplayService {
 
 
         // 프리뷰 이미지 cloud upload
-        String htmlSaveUrl = "http://ec2-3-36-108-33.ap-northeast-2.compute.amazonaws.com/displays/display_"
+        String htmlSaveUrl = "ec2-13-124-29-167.ap-northeast-2.compute.amazonaws.com/displays/display_"
                 + shopDisplay.getShopDisplayId() + "/display_" + shopDisplay.getShopDisplayId() + ".html";
 
         String preViewUploadPath = makePreviewAndUpload(htmlSaveUrl, displayPath, String.valueOf(shopDisplay.getShopDisplayId()));
