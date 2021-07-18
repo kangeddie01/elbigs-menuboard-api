@@ -11,4 +11,5 @@ import lombok.Data;
 public class ShopDeviceDto extends ShopDeviceEntity {
 
     private String previewImagePath;
+    private String displayName;
 }

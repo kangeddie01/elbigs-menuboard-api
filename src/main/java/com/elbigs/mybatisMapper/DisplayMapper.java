@@ -6,10 +6,11 @@ import com.elbigs.entity.TemplateCategoryEntity;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface DisplayMapper {
-    List<MediaLibEntity> selectMediaLibList1(Long mediaCategoryId);
+    List<MediaLibEntity> selectMediaLibList1(Map<String, Long> param);
 
     List<TemplateCategoryEntity> selectTemplateCategoryList();
 }

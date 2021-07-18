@@ -150,6 +150,10 @@ public class DisplayController {
         return res;
     }
 
+    /**
+     * @param shopId
+     * @return
+     */
     @GetMapping("/{shopId}/shop-devices")
     public ResponseDto2 selectShopDeviceList(@PathVariable("shopId") long shopId) {
         ResponseDto2<List<ShopDeviceDto>> res = new ResponseDto2();
@@ -159,15 +163,23 @@ public class DisplayController {
 
     @GetMapping("/media-libs")
     public ResponseDto2 selectMediaLibList(
-            @RequestParam(required = false, value = "mediaCategoryId") Long mediaCategoryId
+            @RequestParam(required = false, value = "mediaCategoryId") long mediaCategoryId
             , @RequestParam(required = false, value = "mediaType") String mediaType) {
         ResponseDto2<List<MediaLibEntity>> res = new ResponseDto2();
-        if ("All".equals(mediaType) && mediaCategoryId != null) {// 전체 (이미지, 동영상)
+        if ("All".equals(mediaType)) {// 전체 (이미지, 동영상)
             res.setData(displayService.selectMediaLibList(mediaCategoryId));
         } else if (mediaType != null) {// 뱃지 or 이미지 or 아이콘
             res.setData(displayService.selectMediaLibList(mediaCategoryId, mediaType));
         }
 
+        res.setSuccess(true);
+        return res;
+    }
+
+    @GetMapping("/bagdes")
+    public ResponseDto2 selectBadgeList() {
+        ResponseDto2<List<MediaLibEntity>> res = new ResponseDto2();
+        res.setData(displayService.selectMediaLibList(0, "B"));
         res.setSuccess(true);
         return res;
     }

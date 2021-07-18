@@ -11,10 +11,10 @@
     </update>
     <select id="selectShopDeviceList" resultType = "com.elbigs.dto.ShopDeviceDto">
         select sd.*
-             , (select sd3.preview_image_path
-                  from shop_display sd3
-                 where sd3.shop_display_id = sd.shop_display_id) as preview_image_path
+             , sd3.preview_image_path
+             , sd3.display_name
          from shop_device sd
+         left outer join shop_display sd3 on sd.shop_display_id = sd3.shop_display_id
         where sd.shop_id = #{shopId}
         order by sd.sort_no
     </select>

@@ -20,7 +20,9 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class DisplayService {
@@ -367,8 +369,8 @@ public class DisplayService {
      * @param mediaType       I.아이콘, V.동영상, B.뱃지
      * @return
      */
-    public List<MediaLibEntity> selectMediaLibList(Long mediaCategoryId, String mediaType) {
-        if (mediaCategoryId != null) {
+    public List<MediaLibEntity> selectMediaLibList(long mediaCategoryId, String mediaType) {
+        if (mediaCategoryId > 0) {
             return mediaLibRepo.findByMediaCategoryIdAndMediaTypeOrderByUpdatedAtDescCreatedAtAsc(mediaCategoryId, mediaType);
         } else {
             return mediaLibRepo.findByMediaTypeOrderByUpdatedAtDescCreatedAtAsc(mediaType);
@@ -385,8 +387,10 @@ public class DisplayService {
      * @param mediaCategoryId
      * @return
      */
-    public List<MediaLibEntity> selectMediaLibList(Long mediaCategoryId) {
-        return displayMapper.selectMediaLibList1(mediaCategoryId);
+    public List<MediaLibEntity> selectMediaLibList(long mediaCategoryId) {
+        Map<String, Long> param = new HashMap<>();
+        param.put("mediaCategoryId", mediaCategoryId);
+        return displayMapper.selectMediaLibList1(param);
     }
 
     /**

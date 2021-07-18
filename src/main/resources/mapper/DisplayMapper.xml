@@ -8,7 +8,9 @@
         select *
           from media_lib ml
          where ml.media_type in ( 'I', 'V' )
+       <if test="mediaCategoryId > 0">
            and ml.media_category_id = #{mediaCategoryId}
+        </if>
          order by updated_at desc, created_at desc
     </select>
     <select id="selectTemplateCategoryList" resultType="com.elbigs.entity.TemplateCategoryEntity">
