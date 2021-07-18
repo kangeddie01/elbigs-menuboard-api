@@ -1,11 +1,17 @@
 package com.elbigs.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
 public class FileUtil {
+
+
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     /**
      * 디렉토리 카피
@@ -17,7 +23,12 @@ public class FileUtil {
 
 
         File[] target_file = sourceF.listFiles();
+        if (target_file == null) {
+            return;
+        }
         for (File file : target_file) {
+
+            System.out.println("target ::" + targetF.getAbsolutePath() + File.separator + file.getName());
             File temp = new File(targetF.getAbsolutePath() + File.separator + file.getName());
             if (file.isDirectory()) {
                 temp.mkdir();

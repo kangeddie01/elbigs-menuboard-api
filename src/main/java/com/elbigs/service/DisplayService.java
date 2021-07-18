@@ -60,6 +60,7 @@ public class DisplayService {
 
     @Value("${html.display.path}")
     public String DISPLAY_PATH;
+
     @Value("${html.template.path}")
     public String TEMPLATE_PATH;
 
@@ -122,17 +123,19 @@ public class DisplayService {
      * @param displayId
      * @return uploaded path ( azure )
      */
-    private String makePreviewAndUpload(String displayDir, String displayId) {
+    private String makePreviewAndUpload(String htmlUrl, String displayDir, String displayId) {
 
         String fileExt = "jpg";
         String localSavePath = displayDir + File.separator + "priview." + fileExt;
-        boolean isSuccess = HtmlToImage.convertToImage(displayDir + File.separator + "display_" + displayId + ".html", localSavePath, fileExt);
+        boolean isSuccess = HtmlToImage.convertToImage(htmlUrl, localSavePath, fileExt);
 
         String dir = DateUtil.getCurrDateStr("yyyyMMdd");
         String convertName = ElbigsUtil.makeRandAlpabet(10) + (System.currentTimeMillis() / 1000);
         String uploadPath = dir + "/" + convertName + "." + fileExt;
 
-        if (isSuccess) {
+        File file = new File(localSavePath);
+
+        if (isSuccess && file.exists()) {
             azureBlobAdapter.uploadLocalFile(uploadPath, localSavePath);
             return uploadPath;
         } else {
@@ -141,13 +144,17 @@ public class DisplayService {
     }
 
 
-
     private boolean saveHtml(String html, long shopDisplayId) {
 
 //        String templateName = ElbigsUtil.makeRandAlpabet(10, true); //
         String savePathDir = DISPLAY_PATH + File.separator + "display_" + shopDisplayId;
+        String saveHtmlPath = DISPLAY_PATH + File.separator + "display_" + shopDisplayId + File.separator + "display_" + shopDisplayId + ".html";
+
+        logger.info("dir : " + savePathDir);
+        logger.info("htmlPath : " + saveHtmlPath);
+
         File dir = new File(savePathDir);
-        File file = new File(DISPLAY_PATH + File.separator + "display_" + shopDisplayId + File.separator + "display_" + shopDisplayId + ".html");
+        File file = new File(saveHtmlPath);
 
         if (!dir.exists()) {
             dir.mkdirs();
@@ -177,46 +184,74 @@ public class DisplayService {
         shopDisplayRepo.save(shopDisplay);
 
 
+        logger.info("step 1 : html save !!");
+
         // html 저장
-        saveHtml(dto.getDisplayHtml(), shopDisplay.getShopDisplayId());
+        boolean success = saveHtml(dto.getDisplayHtml(), shopDisplay.getShopDisplayId());
 
         String displayPath = DISPLAY_PATH + File.separator + "display_" + shopDisplay.getShopDisplayId();
 
+        logger.info("step 2 : static copy !! [before success? " + success + "]");
+
         // static 디렉토리 카피 ( template_{htmlTemplateId} => display_{shopDisplayId}
         if (isNew) {
-            String destDir = DISPLAY_PATH + File.separator + "display_" + shopDisplay.getShopDisplayId() + File.separator + "static";
+            String destStaticDir = displayPath + File.separator + "static";
 
-            File destFile = new File(destDir);
+            File destFile = new File(destStaticDir);
             if (!destFile.exists()) {
-                destFile.mkdirs();
+                if (destFile.mkdirs()) {
+                    logger.info("isExists Static Dir ? " + destFile.exists());
+                } else {
+                    logger.info("fail dir create");
+                }
             }
 
-            String sourceBaseDir = TEMPLATE_PATH + File.separator + "template_" + dto.getHtmlTemplateId().toString() + File.separator + "static";
-            FileUtil.copyDir(new File(sourceBaseDir), new File(destDir));
+            String sourceStaticDir = TEMPLATE_PATH + File.separator + "template_" + dto.getHtmlTemplateId().toString() + File.separator + "static";
+            logger.info("template static path : " + sourceStaticDir);
+            FileUtil.copyDir(new File(sourceStaticDir), new File(destStaticDir));
         }
 
-        // 프리뷰 이미지 cloud upload
-        String preViewUploadPath = makePreviewAndUpload(displayPath, String.valueOf(shopDisplay.getShopDisplayId()));
-
+        logger.info("step 3 : zipping !!");
         // zip 압축
-        String localZipPath = DISPLAY_PATH + File.separator + "display_" + shopDisplay.getShopDisplayId()
-                + File.separator + "display_" + shopDisplay.getShopDisplayId() + ".zip";
-        ZipUtils.zipFolder(DISPLAY_PATH + File.separator + "display_" + shopDisplay.getShopDisplayId(), localZipPath);
+        String localZipPath = displayPath + File.separator + "display_" + shopDisplay.getShopDisplayId() + ".zip";
+        ZipUtils.zipFolder(displayPath, localZipPath);
 
+        logger.info("step 4 : upload zip file !!");
         // 쿨라우드 업로드
         String convertName = ElbigsUtil.makeRandAlpabet(10) + (System.currentTimeMillis() / 1000);
         String zipUploadPath = DateUtil.getCurrDateStr("yyyyMMdd") + "/" + convertName + ".zip";
         azureBlobAdapter.uploadLocalFile(zipUploadPath, localZipPath);
 
+        logger.info("step 5 : delete zip file !!");
         // zip파일 삭제
         File file = new File(localZipPath);
         if (file.exists()) {
             file.delete();
         }
 
+        logger.info("step 6: preview image create and upload !!");
+
+
+        // 프리뷰 이미지 cloud upload
+        String htmlSaveUrl = "http://ec2-3-36-108-33.ap-northeast-2.compute.amazonaws.com/displays/display_"
+                + shopDisplay.getShopDisplayId() + "/display_" + shopDisplay.getShopDisplayId() + ".html";
+
+        String preViewUploadPath = makePreviewAndUpload(htmlSaveUrl, displayPath, String.valueOf(shopDisplay.getShopDisplayId()));
+
+        if (preViewUploadPath == null) {
+
+            try {
+                Thread.sleep(2000);// 2 sec
+            } catch (Exception e) {
+
+            }
+            preViewUploadPath = makePreviewAndUpload(htmlSaveUrl, displayPath, String.valueOf(shopDisplay.getShopDisplayId()));
+        }
         // 경로 저장
         shopDisplay.setDownloadPath(zipUploadPath);
-        shopDisplay.setPreviewImagePath(preViewUploadPath);
+        if (preViewUploadPath != null) {
+            shopDisplay.setPreviewImagePath(preViewUploadPath);
+        }
         shopDisplayRepo.save(shopDisplay);
 
         logger.info("new display id : " + shopDisplay.getShopDisplayId());
@@ -224,6 +259,7 @@ public class DisplayService {
         return shopDisplay;
 
     }
+
 
     /**
      * shop_device 에 shop_display_id 매핑 ( list )
@@ -414,7 +450,7 @@ public class DisplayService {
         String orgFileName = file.getOriginalFilename();
         String ext = orgFileName.substring(orgFileName.length() - 3, orgFileName.length());
 
-        // 프리뷰 이미지 cloud upload
+        // 이미지 cloud upload
         String dir = DateUtil.getCurrDateStr("yyyyMMdd");
         String convertName = ElbigsUtil.makeRandAlpabet(10) + (System.currentTimeMillis() / 1000);
         String uploadPath = dir + "/" + convertName + "." + ext;

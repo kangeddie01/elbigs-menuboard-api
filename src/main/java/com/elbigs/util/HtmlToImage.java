@@ -15,7 +15,6 @@ public class HtmlToImage {
                     new Pdfcrowd.HtmlToImageClient("kangeddie01", "b071095f978e67ff37fbb3afbd31f51a");
 
             client.setOutputFormat(format);
-
             client.convertUrlToFile(url, imagePath);
 //            client.convertFileToFile(url, imagePath);
 

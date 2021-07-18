@@ -17,4 +17,4 @@ ARG JAR_FILE=build/libs/elbigs-menuboard-api-0.0.1-SNAPSHOT.jar
 ADD ${JAR_FILE} menuboard.jar
 
 # Run the jar file
-ENTRYPOINT ["java","-Dspring.profiles.active=local","-jar","/menuboard.jar"]
+ENTRYPOINT ["java","-Dspring.profiles.active=dev","-jar","/menuboard.jar"]

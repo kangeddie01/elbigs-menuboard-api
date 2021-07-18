@@ -16,7 +16,7 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import java.util.Iterator;
 
 @RestController
-@RequestMapping("/v1/cms/file")
+@RequestMapping("/api/v1/cms/file")
 public class FileController {
 
     @Autowired

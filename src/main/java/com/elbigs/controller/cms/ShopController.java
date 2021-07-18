@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/v1/cms/shop")
+@RequestMapping("/api/v1/cms/shop")
 public class ShopController {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());

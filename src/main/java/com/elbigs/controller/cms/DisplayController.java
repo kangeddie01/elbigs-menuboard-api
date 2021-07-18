@@ -9,6 +9,8 @@ import com.elbigs.service.DisplayService;
 import com.elbigs.util.DateUtil;
 import com.elbigs.util.ElbigsUtil;
 import com.elbigs.util.FileUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -19,10 +21,12 @@ import java.util.Iterator;
 import java.util.List;
 
 @RestController
-@RequestMapping("/v1/cms")
+@RequestMapping("/api/v1/cms")
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class DisplayController {
 
+
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
     private DisplayService displayService;
@@ -88,6 +92,7 @@ public class DisplayController {
 
     /**
      * panel-display mapping
+     *
      * @param dto
      * @param shopId
      * @return
@@ -103,6 +108,7 @@ public class DisplayController {
 
     /**
      * delete display
+     *
      * @param shopId
      * @param shopDisplayId
      * @return
@@ -168,11 +174,17 @@ public class DisplayController {
 
     @PostMapping("/media-libs/upload")
     public ResponseDto2<MediaLibEntity> uploadFile(@RequestPart List<MultipartFile> file,
-                                                   @RequestParam("mediaType") String mediaType) {
+                                                   @RequestParam("mediaType") String mediaType,
+                                                   @RequestParam(value = "mediaCategoryId", required = false) Long mediaCategoryId) {
+
         ResponseDto2<MediaLibEntity> res = new ResponseDto2();
+
+        logger.info("param : mediaCategoryId : " + mediaCategoryId);
+        logger.info("param : mediaType : " + mediaType);
 
         MediaLibEntity param = new MediaLibEntity();
         param.setMediaType(mediaType);
+        param.setMediaCategoryId(mediaCategoryId);
         MediaLibEntity newLib = displayService.insertMediaLib(file.get(0), param);
         res.setData(newLib);
         return res;
