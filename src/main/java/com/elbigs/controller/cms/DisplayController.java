@@ -1,9 +1,6 @@
 package com.elbigs.controller.cms;
 
-import com.elbigs.dto.FileDto;
-import com.elbigs.dto.ResponseDto2;
-import com.elbigs.dto.ShopDeviceDto;
-import com.elbigs.dto.ShopDisaplyDto;
+import com.elbigs.dto.*;
 import com.elbigs.entity.*;
 import com.elbigs.service.DisplayService;
 import com.elbigs.util.DateUtil;
@@ -163,31 +160,19 @@ public class DisplayController {
 
     @GetMapping("/media-libs")
     public ResponseDto2 selectMediaLibList(
-            @RequestParam(required = false, value = "mediaCategoryId") long mediaCategoryId
+            @RequestParam(required = false, value = "mediaCategoryId") Long mediaCategoryId
             , @RequestParam(required = false, value = "mediaType") String mediaType) {
-        ResponseDto2<List<MediaLibEntity>> res = new ResponseDto2();
-        if ("All".equals(mediaType)) {// 전체 (이미지, 동영상)
-            res.setData(displayService.selectMediaLibList(mediaCategoryId));
-        } else if (mediaType != null) {// 뱃지 or 이미지 or 아이콘
-            res.setData(displayService.selectMediaLibList(mediaCategoryId, mediaType));
-        }
-
+        ResponseDto2<List<MediaLibDto>> res = new ResponseDto2();
+        res.setData(displayService.selectMediaLibList(mediaCategoryId != null ? mediaCategoryId : Long.valueOf(0), mediaType));
         res.setSuccess(true);
         return res;
     }
 
-    @GetMapping("/bagdes")
-    public ResponseDto2 selectBadgeList() {
-        ResponseDto2<List<MediaLibEntity>> res = new ResponseDto2();
-        res.setData(displayService.selectMediaLibList(0, "B"));
-        res.setSuccess(true);
-        return res;
-    }
-
-    @PostMapping("/media-libs/upload")
-    public ResponseDto2<MediaLibEntity> uploadFile(@RequestPart List<MultipartFile> file,
-                                                   @RequestParam("mediaType") String mediaType,
-                                                   @RequestParam(value = "mediaCategoryId", required = false) Long mediaCategoryId) {
+    @PostMapping("/{shopId}/media-libs/upload")
+    public ResponseDto2<MediaLibEntity> uploadFile(@PathVariable("shopId") long shopId
+            , @RequestPart List<MultipartFile> file
+            , @RequestParam("mediaType") String mediaType
+            , @RequestParam(value = "mediaCategoryId", required = false) Long mediaCategoryId) {
 
         ResponseDto2<MediaLibEntity> res = new ResponseDto2();
 
@@ -196,6 +181,7 @@ public class DisplayController {
 
         MediaLibEntity param = new MediaLibEntity();
         param.setMediaType(mediaType);
+        param.setShopId(shopId);
         param.setMediaCategoryId(mediaCategoryId);
         MediaLibEntity newLib = displayService.insertMediaLib(file.get(0), param);
         res.setData(newLib);

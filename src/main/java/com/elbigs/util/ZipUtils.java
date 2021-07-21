@@ -34,6 +34,11 @@ public class ZipUtils {
         }
     }
 
+    public static void unzip(String zipPath, String destDir) throws ZipException {
+
+        new ZipFile(zipPath).extractAll(destDir);
+
+    }
 
     public static boolean zipFolder(String sourceDir, String destZipPath) {
 

@@ -1,12 +1,14 @@
 package com.elbigs.util;
 
+import net.lingala.zip4j.core.ZipFile;
+import net.lingala.zip4j.io.ZipOutputStream;
+import org.apache.tomcat.util.http.fileupload.FileItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 
 public class FileUtil {
 
@@ -57,5 +59,34 @@ public class FileUtil {
                 }
             }
         }
+    }
+
+
+    /**
+     * bytes 를 savePath에 저장
+     * @param bytes
+     * @param fileName
+     * @param savePath
+     * @return
+     */
+    public static boolean writeFile(byte[] bytes, String fileName, String savePath) {
+
+        File dir = new File(savePath);
+
+        if (!dir.exists()) {
+            dir.mkdirs();
+        }
+
+        FileOutputStream outputStream = null;
+        try {
+            outputStream = new FileOutputStream(savePath + File.separator + fileName);
+            outputStream.write(bytes);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return true;
     }
 }

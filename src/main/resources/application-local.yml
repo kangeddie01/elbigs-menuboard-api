@@ -31,9 +31,9 @@ blob:
 
 html:
   display:
-    path: C:\project\elbigs\elbigs-menuboard-api\src\main\webapp\displays
+    path: C:\\project\\elbigs\\elbigs-menuboard-api\\src\\main\\webapp\\displays
   template:
-    path: C:\project\elbigs\elbigs-menuboard-api\src\main\webapp\template
+    path: C:\\project\\elbigs\\elbigs-menuboard-api\\src\\main\\webapp\\template
 
 file:
   connectable-type-shop: App\Models\Shop

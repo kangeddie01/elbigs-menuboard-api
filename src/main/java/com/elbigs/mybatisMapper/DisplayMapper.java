@@ -1,5 +1,6 @@
 package com.elbigs.mybatisMapper;
 
+import com.elbigs.dto.MediaLibDto;
 import com.elbigs.entity.MediaLibEntity;
 import com.elbigs.entity.ShopDeviceEntity;
 import com.elbigs.entity.TemplateCategoryEntity;
@@ -10,7 +11,8 @@ import java.util.Map;
 
 @Mapper
 public interface DisplayMapper {
-    List<MediaLibEntity> selectMediaLibList1(Map<String, Long> param);
-
+    List<MediaLibDto> selectMediaLibList(Map<String, String> param);
     List<TemplateCategoryEntity> selectTemplateCategoryList();
+
+
 }

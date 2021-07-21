@@ -22,5 +22,9 @@ public class MediaLibEntity extends BaseEntity {
     private String mediaType; // B.뱃지, V.동영상, I.이미지
     private Long mediaCategoryId;
     private Long shopId;
+    private Long size;
+    private String orginFilename;
+    private String resolution;
+
 
 }

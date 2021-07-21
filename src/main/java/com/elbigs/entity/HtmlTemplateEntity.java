@@ -23,8 +23,8 @@ public class HtmlTemplateEntity extends BaseEntity {
     private String templateType; // a.일반, b.sns, c.vimeo
     private Long templateCategoryId;
     private String html;
-    private String templateZipPath;
     private String previewImagePath;
+    private String templateZipPath;
     private String downloadPath;
     private String recommendYn;
 

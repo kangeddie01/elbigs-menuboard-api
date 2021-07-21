@@ -1,6 +1,7 @@
 package com.elbigs.service;
 
 import com.elbigs.dto.FileDto;
+import com.elbigs.dto.MediaLibDto;
 import com.elbigs.dto.ShopDeviceDto;
 import com.elbigs.dto.ShopDisaplyDto;
 import com.elbigs.entity.*;
@@ -8,7 +9,9 @@ import com.elbigs.jpaRepository.*;
 import com.elbigs.mybatisMapper.DisplayMapper;
 import com.elbigs.mybatisMapper.ShopDeviceMapper;
 import com.elbigs.util.*;
+import com.sun.jdi.LongValue;
 import gui.ava.html.image.generator.HtmlImageGenerator;
+import net.lingala.zip4j.exception.ZipException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,69 +69,20 @@ public class DisplayService {
     @Value("${html.template.path}")
     public String TEMPLATE_PATH;
 
-    public static void main(String[] args) {
-
-        String line = "";
-        try {
-            //파일 객체 생성
-            File file = new File("C:\\project\\menuboard_cms\\public\\template\\sample1\\template_sample.html");
-            //입력 스트림 생성
-            FileReader filereader = new FileReader(file);
-            //입력 버퍼 생성
-            BufferedReader bufReader = new BufferedReader(filereader);
-
-            while ((line = bufReader.readLine()) != null) {
-                System.out.println(line);
-            }
-            //.readLine()은 끝에 개행문자를 읽지 않는다.
-            bufReader.close();
-        } catch (FileNotFoundException e) {
-            // TODO: handle exception
-        } catch (IOException e) {
-            System.out.println(e);
-        }
-
-//        makeImage(line);
-    }
-
-
-    public static void main2(String[] args) {
-
-        String dispHtml = "<b>Hello World!</b> Please goto <a title=\"Goto Google\" href=\"http://www.google.com\">Google</a>";
-        String tempPath = "C:\\image\\";
-        String fileName = "hello-world.png";
-
-        try {
-            ByteArrayOutputStream baos = null;
-            ByteArrayInputStream bais = null;
-            FileInputStream inputStream = null;
-
-            HtmlImageGenerator imageGenerator = new HtmlImageGenerator();
-            imageGenerator.loadHtml(dispHtml);
-            imageGenerator.saveAsImage(tempPath + fileName);
-            File imgFile = new File(tempPath + fileName);
-
-            if (imgFile.exists()) {
-
-            }
-
-        } catch (Exception e) {
-            // Exception 은 용도에 따라!
-
-        }
-    }
+    @Value("${spring.url.base}")
+    public String SERVER_URL;
 
     /**
      * create preview image & upload azure
      *
-     * @param displayDir
-     * @param displayId
+     * @param htmlUrl
+     * @param targetDir
      * @return uploaded path ( azure )
      */
-    private String makePreviewAndUpload(String htmlUrl, String displayDir, String displayId) {
+    private String makePreviewAndUpload(String htmlUrl, String targetDir) {
 
         String fileExt = "jpg";
-        String localSavePath = displayDir + File.separator + "priview." + fileExt;
+        String localSavePath = targetDir + File.separator + "priview." + fileExt;
         boolean isSuccess = HtmlToImage.convertToImage(htmlUrl, localSavePath, fileExt);
 
         String dir = DateUtil.getCurrDateStr("yyyyMMdd");
@@ -235,10 +189,10 @@ public class DisplayService {
 
 
         // 프리뷰 이미지 cloud upload
-        String htmlSaveUrl = "ec2-13-124-29-167.ap-northeast-2.compute.amazonaws.com/displays/display_"
+        String htmlSaveUrl = SERVER_URL + "/displays/display_"
                 + shopDisplay.getShopDisplayId() + "/display_" + shopDisplay.getShopDisplayId() + ".html";
 
-        String preViewUploadPath = makePreviewAndUpload(htmlSaveUrl, displayPath, String.valueOf(shopDisplay.getShopDisplayId()));
+        String preViewUploadPath = makePreviewAndUpload(htmlSaveUrl, displayPath);
 
         if (preViewUploadPath == null) {
 
@@ -247,7 +201,7 @@ public class DisplayService {
             } catch (Exception e) {
 
             }
-            preViewUploadPath = makePreviewAndUpload(htmlSaveUrl, displayPath, String.valueOf(shopDisplay.getShopDisplayId()));
+            preViewUploadPath = makePreviewAndUpload(htmlSaveUrl, displayPath);
         }
         // 경로 저장
         shopDisplay.setDownloadPath(zipUploadPath);
@@ -369,29 +323,20 @@ public class DisplayService {
      * @param mediaType       I.아이콘, V.동영상, B.뱃지
      * @return
      */
-    public List<MediaLibEntity> selectMediaLibList(long mediaCategoryId, String mediaType) {
+    public List<MediaLibDto> selectMediaLibList(long mediaCategoryId, String mediaType) {
+        Map<String, String> param = new HashMap<>();
         if (mediaCategoryId > 0) {
-            return mediaLibRepo.findByMediaCategoryIdAndMediaTypeOrderByUpdatedAtDescCreatedAtAsc(mediaCategoryId, mediaType);
-        } else {
-            return mediaLibRepo.findByMediaTypeOrderByUpdatedAtDescCreatedAtAsc(mediaType);
+            param.put("mediaCategoryId", String.valueOf(mediaCategoryId));
         }
+        if ("All".equals(mediaType)) {
+            param.put("mediaType", "IV");//동영상,비디오
+        } else {
+            param.put("mediaType", mediaType);
+        }
+
+        return displayMapper.selectMediaLibList(param);
     }
 
-    public List<MediaLibEntity> selectMediaLibBadgeList() {
-        return mediaLibRepo.findByMediaTypeOrderByUpdatedAtDescCreatedAtAsc("B");
-    }
-
-    /**
-     * media lib 목록 조회
-     *
-     * @param mediaCategoryId
-     * @return
-     */
-    public List<MediaLibEntity> selectMediaLibList(long mediaCategoryId) {
-        Map<String, Long> param = new HashMap<>();
-        param.put("mediaCategoryId", mediaCategoryId);
-        return displayMapper.selectMediaLibList1(param);
-    }
 
     /**
      * 템플릿 카테고리 목록 조회 ( 계층구조 )
@@ -450,7 +395,6 @@ public class DisplayService {
 
     public MediaLibEntity insertMediaLib(MultipartFile file, MediaLibEntity entity) {
 
-        FileDto fileDto = new FileDto();
         String orgFileName = file.getOriginalFilename();
         String ext = orgFileName.substring(orgFileName.length() - 3, orgFileName.length());
 
@@ -458,13 +402,20 @@ public class DisplayService {
         String dir = DateUtil.getCurrDateStr("yyyyMMdd");
         String convertName = ElbigsUtil.makeRandAlpabet(10) + (System.currentTimeMillis() / 1000);
         String uploadPath = dir + "/" + convertName + "." + ext;
-        System.out.println("uploadPath : " + uploadPath);
+//        System.out.println("uploadPath : " + uploadPath);
+
+
+        try {
+            BufferedImage bi = ImageIO.read(file.getInputStream());
+            entity.setResolution(bi.getWidth() + "x" + bi.getHeight());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         azureBlobAdapter.upload(file, uploadPath);
 
-        fileDto.setOriginFileName(orgFileName);
-        fileDto.setDownloadPath(azureStorageUrl + "/" + uploadPath);
-        fileDto.setUploadPath(uploadPath);
-
+        entity.setSize(file.getSize());
+        entity.setOrginFilename(orgFileName);
         entity.setMediaPath(uploadPath);
 
         mediaLibRepo.save(entity);
@@ -472,4 +423,64 @@ public class DisplayService {
         return mediaLibRepo.findById(entity.getMediaLibId()).get();
     }
 
+
+    /**
+     * 템플릿 업로드
+     *
+     * @param file
+     * @param entity
+     * @return
+     * @throws IOException
+     */
+    @Transactional
+    public boolean uploadTemplate(MultipartFile file, HtmlTemplateEntity entity) throws IOException, ZipException {
+
+        String orgFileName = file.getOriginalFilename();
+        String ext = orgFileName.substring(orgFileName.length() - 3, orgFileName.length());
+        String dir = DateUtil.getCurrDateStr("yyyyMMdd");
+        String convertName = ElbigsUtil.makeRandAlpabet(10) + (System.currentTimeMillis() / 1000);
+        String azureUploadPath = dir + "/" + convertName + "." + ext;
+
+        // 1. htmlTemplateId 생성
+        logger.info("step 1 : htmlTemplateId 생성");
+        entity.setTemplateCategoryId(Long.valueOf(1));
+        entity.setTemplateZipPath("zip_path");
+        htmlTemplateRepo.save(entity);
+
+        long htmlTemplateId = entity.getHtmlTemplateId();
+
+        // 2. zip 파일 저장
+        String targetPath = TEMPLATE_PATH + File.separator + "template_" + htmlTemplateId;
+        String zipFileName = "template.zip";
+        logger.info("step 2 : zip 파일 저장(" + targetPath + File.separator + zipFileName + ")");
+        FileUtil.writeFile(file.getBytes(), zipFileName, targetPath);
+
+        // 3. 압축 해제
+        logger.info("step 3 : 압축 해제");
+        ZipUtils.unzip(targetPath + File.separator + zipFileName, targetPath);
+
+        // 4. preview 이미지 생성
+        logger.info("step 4 : preview 이미지 생성");
+        String htmlSaveUrl = SERVER_URL + "/template/template_" + htmlTemplateId + "/template.html";
+
+        String preViewUploadPath = makePreviewAndUpload(htmlSaveUrl, targetPath);
+
+        if (preViewUploadPath == null) {
+
+            try {
+                Thread.sleep(2000);// 2 sec
+            } catch (Exception e) {
+
+            }
+            preViewUploadPath = makePreviewAndUpload(htmlSaveUrl, targetPath);
+        }
+
+        entity.setPreviewImagePath(preViewUploadPath);
+
+        // 5. db에 정보 저장
+        logger.info("step 5 : db에 정보 저장");
+        htmlTemplateRepo.save(entity);
+
+        return true;
+    }
 }
