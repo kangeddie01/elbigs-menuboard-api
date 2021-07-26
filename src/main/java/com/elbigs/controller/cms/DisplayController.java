@@ -36,8 +36,8 @@ public class DisplayController {
      * @return
      */
     @PostMapping("/{shopId}/shop-display")
-    public ResponseDto2 saveContent(@RequestBody ShopDisaplyDto dto, @PathVariable("shopId") long shopId) {
-        ResponseDto2<ShopDisplayEntity> res = new ResponseDto2();
+    public ResponseDto saveContent(@RequestBody ShopDisaplyDto dto, @PathVariable("shopId") long shopId) {
+        ResponseDto res = new ResponseDto();
 
         if (!StringUtils.hasLength(dto.getDisplayHtml())) {
             res.setSuccess(false);
@@ -45,8 +45,16 @@ public class DisplayController {
         }
         dto.setShopId(shopId);
 
-        res.setData(displayService.saveContent(dto));
-        res.setSuccess(true);
+        try {
+            ShopDisplayEntity shopDisplay = displayService.saveContent(dto);
+            res.setSuccess(true);
+            res.put("shopDisplay", shopDisplay);
+
+        } catch (Exception e) {
+            res.setSuccess(false);
+            res.addErrors("ERROR_001", e.getMessage());
+        }
+
 
         return res;
     }
@@ -158,44 +166,6 @@ public class DisplayController {
         return res;
     }
 
-    @GetMapping("/media-libs")
-    public ResponseDto2 selectMediaLibList(
-            @RequestParam(required = false, value = "mediaCategoryId") Long mediaCategoryId
-            , @RequestParam(required = false, value = "mediaType") String mediaType) {
-        ResponseDto2<List<MediaLibDto>> res = new ResponseDto2();
-        res.setData(displayService.selectMediaLibList(mediaCategoryId != null ? mediaCategoryId : Long.valueOf(0), mediaType));
-        res.setSuccess(true);
-        return res;
-    }
-
-    @PostMapping("/{shopId}/media-libs/upload")
-    public ResponseDto2<MediaLibEntity> uploadFile(@PathVariable("shopId") long shopId
-            , @RequestPart List<MultipartFile> file
-            , @RequestParam("mediaType") String mediaType
-            , @RequestParam(value = "mediaCategoryId", required = false) Long mediaCategoryId) {
-
-        ResponseDto2<MediaLibEntity> res = new ResponseDto2();
-
-        logger.info("param : mediaCategoryId : " + mediaCategoryId);
-        logger.info("param : mediaType : " + mediaType);
-
-        MediaLibEntity param = new MediaLibEntity();
-        param.setMediaType(mediaType);
-        param.setShopId(shopId);
-        param.setMediaCategoryId(mediaCategoryId);
-        MediaLibEntity newLib = displayService.insertMediaLib(file.get(0), param);
-        res.setData(newLib);
-        return res;
-
-    }
-
-    @GetMapping("/media-categorys")
-    public ResponseDto2 selectMediaCategoryList() {
-        ResponseDto2<List<MediaCategoryEntity>> res = new ResponseDto2();
-        res.setData(displayService.selectMediaCategoryList());
-        res.setSuccess(true);
-        return res;
-    }
 
 //    @GetMapping("/template-categorys")
 //    public ResponseDto2 selectTemplateCategoryList() {
@@ -232,6 +202,22 @@ public class DisplayController {
         ResponseDto2<List<HtmlTemplateEntity>> res = new ResponseDto2();
         res.setData(displayService.selectTemplateList(templateCategoryId, screenRatio));
         res.setSuccess(true);
+        return res;
+    }
+
+    @PutMapping("/{shopId}/shop-displays/{shopDisplayId}/copy")
+    public ResponseDto copyDisplay(@PathVariable("shopId") long shopId
+            , @PathVariable("shopDisplayId") long shopDisplayId) {
+
+        ResponseDto res = new ResponseDto();
+        try {
+            displayService.copyDisplay(shopId, shopDisplayId);
+            res.setSuccess(true);
+        } catch (Exception e) {
+            res.setSuccess(false);
+            res.addErrors("ERROR_001", e.getMessage());
+        }
+
         return res;
     }
 

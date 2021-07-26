@@ -10,6 +10,5 @@ import java.util.List;
 @Repository
 public interface MediaLibRepo extends JpaRepository<MediaLibEntity, Long> {
     List<MediaLibEntity> findByMediaCategoryIdAndMediaTypeOrderByUpdatedAtDescCreatedAtAsc(long mediaCategoryId, String mediaType);
-
     List<MediaLibEntity> findByMediaTypeOrderByUpdatedAtDescCreatedAtAsc(String mediaType);
 }

@@ -15,4 +15,6 @@ public interface ShopDisplayRepo extends CrudRepository<ShopDisplayEntity, Long>
     ShopDisplayEntity findById(long id);
 
     List<ShopDisplayEntity> findByShopIdAndScreenRatio(Long shopId, String screenRatio);
+
+    List<ShopDisplayEntity> findByShopIdAndScreenRatioOrderByUpdatedAtDescCreatedAtDesc(Long shopId, String screenRatio);
 }

@@ -19,5 +19,10 @@ public class MediaCategoryEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long mediaCategoryId;
     private String mediaCategoryName;
+    private String categoryType;// cm.일반, bg.배경화면, bd.뱃지
+    private Long shopId;
+    private int sortNo;
+
+
 
 }

@@ -19,7 +19,7 @@ public class MediaLibEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long mediaLibId;
     private String mediaPath;
-    private String mediaType; // B.뱃지, V.동영상, I.이미지
+    private String mediaType; // v.동영상, i.이미지
     private Long mediaCategoryId;
     private Long shopId;
     private Long size;

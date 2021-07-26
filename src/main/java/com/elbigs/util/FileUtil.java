@@ -21,8 +21,12 @@ public class FileUtil {
      * @param sourceF
      * @param targetF
      */
-    public static void copyDir(File sourceF, File targetF) {
+    public static void copyDir(File sourceF, File targetF) throws IOException {
 
+        if (!targetF.exists()) {
+            if (targetF.mkdirs()) {
+            }
+        }
 
         File[] target_file = sourceF.listFiles();
         if (target_file == null) {
@@ -46,8 +50,9 @@ public class FileUtil {
                     while ((cnt = fis.read(b)) != -1) {
                         fos.write(b, 0, cnt);
                     }
-                } catch (Exception e) {
+                } catch (IOException e) {
                     e.printStackTrace();
+                    throw e;
                 } finally {
                     try {
                         fis.close();

@@ -104,7 +104,7 @@ public class DisplayService {
 
 //        String templateName = ElbigsUtil.makeRandAlpabet(10, true); //
         String savePathDir = DISPLAY_PATH + File.separator + "display_" + shopDisplayId;
-        String saveHtmlPath = DISPLAY_PATH + File.separator + "display_" + shopDisplayId + File.separator + "display_" + shopDisplayId + ".html";
+        String saveHtmlPath = DISPLAY_PATH + File.separator + "display_" + shopDisplayId + File.separator + "display.html";
 
         logger.info("dir : " + savePathDir);
         logger.info("htmlPath : " + saveHtmlPath);
@@ -127,7 +127,7 @@ public class DisplayService {
     }
 
     @Transactional
-    public ShopDisplayEntity saveContent(ShopDisaplyDto dto) {
+    public ShopDisplayEntity saveContent(ShopDisaplyDto dto) throws IOException {
 
         boolean isNew = dto.getShopDisplayId() == null;
 
@@ -153,14 +153,14 @@ public class DisplayService {
         if (isNew) {
             String destStaticDir = displayPath + File.separator + "static";
 
-            File destFile = new File(destStaticDir);
-            if (!destFile.exists()) {
-                if (destFile.mkdirs()) {
-                    logger.info("isExists Static Dir ? " + destFile.exists());
-                } else {
-                    logger.info("fail dir create");
-                }
-            }
+//            File destFile = new File(destStaticDir);
+//            if (!destFile.exists()) {
+//                if (destFile.mkdirs()) {
+//                    logger.info("isExists Static Dir ? " + destFile.exists());
+//                } else {
+//                    logger.info("fail dir create");
+//                }
+//            }
 
             String sourceStaticDir = TEMPLATE_PATH + File.separator + "template_" + dto.getHtmlTemplateId().toString() + File.separator + "static";
             logger.info("template static path : " + sourceStaticDir);
@@ -169,7 +169,7 @@ public class DisplayService {
 
         logger.info("step 3 : zipping !!");
         // zip 압축
-        String localZipPath = displayPath + File.separator + "display_" + shopDisplay.getShopDisplayId() + ".zip";
+        String localZipPath = displayPath + File.separator + "display_.zip";
         ZipUtils.zipFolder(displayPath, localZipPath);
 
         logger.info("step 4 : upload zip file !!");
@@ -189,8 +189,7 @@ public class DisplayService {
 
 
         // 프리뷰 이미지 cloud upload
-        String htmlSaveUrl = SERVER_URL + "/displays/display_"
-                + shopDisplay.getShopDisplayId() + "/display_" + shopDisplay.getShopDisplayId() + ".html";
+        String htmlSaveUrl = SERVER_URL + "/displays/display_" + shopDisplay.getShopDisplayId() + "/display.html";
 
         String preViewUploadPath = makePreviewAndUpload(htmlSaveUrl, displayPath);
 
@@ -293,7 +292,7 @@ public class DisplayService {
      * @return
      */
     public List<ShopDisplayEntity> selectShopDisplayList(Long shopId, String screenRatio) {
-        return shopDisplayRepo.findByShopIdAndScreenRatio(shopId, screenRatio);
+        return shopDisplayRepo.findByShopIdAndScreenRatioOrderByUpdatedAtDescCreatedAtDesc(shopId, screenRatio);
     }
 
     /**
@@ -305,36 +304,6 @@ public class DisplayService {
     public List<ShopDeviceDto> selectShopDeviceList(Long shopId) {
 //        shopDeviceRepo.findByShopIdOrderBySortNoAsc(shopId);
         return shopDeviceMapper.selectShopDeviceList(shopId);
-    }
-
-    /**
-     * 미디어 카테고리 전체 조회
-     *
-     * @return
-     */
-    public List<MediaCategoryEntity> selectMediaCategoryList() {
-        return mediaCategoryRepo.findAll();
-    }
-
-    /**
-     * 미디어 목록 조회
-     *
-     * @param mediaCategoryId
-     * @param mediaType       I.아이콘, V.동영상, B.뱃지
-     * @return
-     */
-    public List<MediaLibDto> selectMediaLibList(long mediaCategoryId, String mediaType) {
-        Map<String, String> param = new HashMap<>();
-        if (mediaCategoryId > 0) {
-            param.put("mediaCategoryId", String.valueOf(mediaCategoryId));
-        }
-        if ("All".equals(mediaType)) {
-            param.put("mediaType", "IV");//동영상,비디오
-        } else {
-            param.put("mediaType", mediaType);
-        }
-
-        return displayMapper.selectMediaLibList(param);
     }
 
 
@@ -391,36 +360,6 @@ public class DisplayService {
 
     public void deleteShopDisplay(Long shopDisplayId) {
         shopDisplayRepo.deleteById(shopDisplayId);
-    }
-
-    public MediaLibEntity insertMediaLib(MultipartFile file, MediaLibEntity entity) {
-
-        String orgFileName = file.getOriginalFilename();
-        String ext = orgFileName.substring(orgFileName.length() - 3, orgFileName.length());
-
-        // 이미지 cloud upload
-        String dir = DateUtil.getCurrDateStr("yyyyMMdd");
-        String convertName = ElbigsUtil.makeRandAlpabet(10) + (System.currentTimeMillis() / 1000);
-        String uploadPath = dir + "/" + convertName + "." + ext;
-//        System.out.println("uploadPath : " + uploadPath);
-
-
-        try {
-            BufferedImage bi = ImageIO.read(file.getInputStream());
-            entity.setResolution(bi.getWidth() + "x" + bi.getHeight());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        azureBlobAdapter.upload(file, uploadPath);
-
-        entity.setSize(file.getSize());
-        entity.setOrginFilename(orgFileName);
-        entity.setMediaPath(uploadPath);
-
-        mediaLibRepo.save(entity);
-
-        return mediaLibRepo.findById(entity.getMediaLibId()).get();
     }
 
 
@@ -480,6 +419,44 @@ public class DisplayService {
         // 5. db에 정보 저장
         logger.info("step 5 : db에 정보 저장");
         htmlTemplateRepo.save(entity);
+
+        return true;
+    }
+
+    /**
+     * 제작된 화면을 복사하여 생성한다.
+     *
+     * @param shopId
+     * @param shopDisplayId
+     * @return
+     */
+    @Transactional
+    public boolean copyDisplay(Long shopId, Long shopDisplayId) throws IOException {
+
+        // 1. insert shop_display
+        ShopDisplayEntity beforeDisplay = shopDisplayRepo.findById(shopDisplayId).get();
+
+
+        ShopDisplayEntity newDisplay = new ShopDisplayEntity();
+        newDisplay.setDisplayName(beforeDisplay.getDisplayName() + "_복사본");
+        newDisplay.setScreenRatio(beforeDisplay.getScreenRatio());
+        newDisplay.setDownloadPath(beforeDisplay.getDownloadPath());
+        newDisplay.setShopId(shopId);
+        newDisplay.setPreviewImagePath(beforeDisplay.getPreviewImagePath());
+        newDisplay.setStatus(beforeDisplay.getStatus());
+
+        shopDisplayRepo.save(newDisplay);
+
+        Long newShopDisplayId = newDisplay.getShopDisplayId();
+        logger.info("before shopDisplayId : " + shopDisplayId);
+        logger.info("new shopDisplayId : " + newShopDisplayId);
+
+        // 2. html 디렉토리 복사
+        String sourceDir = DISPLAY_PATH + File.separator + "display_" + shopDisplayId;
+        String targetDir = DISPLAY_PATH + File.separator + "display_" + newShopDisplayId;
+        logger.info("sourceDir : " + sourceDir);
+        logger.info("targetDir : " + targetDir);
+        FileUtil.copyDir(new File(sourceDir), new File(targetDir));
 
         return true;
     }

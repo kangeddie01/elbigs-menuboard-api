@@ -21,7 +21,6 @@ public abstract class BaseEntity {
     protected Timestamp createdAt;
 
     @UpdateTimestamp
-    @Column(insertable = false)
     protected Timestamp updatedAt;
 
     @Transient
