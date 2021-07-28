@@ -50,7 +50,7 @@ public class ExceptionAdvice {
     }
 
     @ExceptionHandler(LoginFailedException.class)
-    @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
+    @ResponseStatus(HttpStatus.OK)
     protected CommonResponseDto loginFailed(HttpServletRequest request, LoginFailedException e) {
 
         CommonResponseDto res = new CommonResponseDto();

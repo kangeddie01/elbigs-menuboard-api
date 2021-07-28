@@ -34,7 +34,7 @@ public class FileUtil {
         }
         for (File file : target_file) {
 
-            System.out.println("target ::" + targetF.getAbsolutePath() + File.separator + file.getName());
+//            System.out.println("target ::" + targetF.getAbsolutePath() + File.separator + file.getName());
             File temp = new File(targetF.getAbsolutePath() + File.separator + file.getName());
             if (file.isDirectory()) {
                 temp.mkdir();

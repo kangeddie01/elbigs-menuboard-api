@@ -13,18 +13,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/cms/login")
+@RequestMapping("/api/v1/cms")
 public class LoginController {
 
 
     @Autowired
     private UserService userService;
 
-
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
 
-    @PostMapping
+    @PostMapping("/login")
     public ResponseDto2 login(@RequestBody UserAuthDto login) {
         CmsUserEntity user = userService.login(login.getLoginId(), login.getPassword());
         ResponseDto2<CmsUserEntity> res = new ResponseDto2();

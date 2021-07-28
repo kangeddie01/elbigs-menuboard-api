@@ -66,16 +66,15 @@ public class DisplayController {
      * @param dto
      * @return
      */
-//    @PutMapping("/{shopId}/shop-displays/{shopDisplayId}")
-//    public ResponseDto2 saveContent(@RequestBody ShopDisaplyDto dto
-//            , @PathVariable("shopId") long shopId
-//            , @PathVariable("shopDisplayId") long shopDisplayId) {
-//        ResponseDto2<String> res = new ResponseDto2();
-//        dto.setShopId(shopId);
-//        dto.setShopDisplayId(shopDisplayId);
-//        displayService.saveContent(dto);
-//        return res;
-//    }
+    @PutMapping("/{shopId}/shop-displays/{shopDisplayId}/modify-title")
+    public ResponseDto2 saveContent(@RequestBody ShopDisaplyDto dto
+            , @PathVariable("shopId") long shopId
+            , @PathVariable("shopDisplayId") long shopDisplayId) {
+        ResponseDto2<String> res = new ResponseDto2();
+        displayService.updateShopDisplayTitle(shopDisplayId, dto.getDisplayName());
+        res.setSuccess(true);
+        return res;
+    }
 
     /**
      * 디바이스 저장
@@ -96,7 +95,7 @@ public class DisplayController {
     }
 
     /**
-     * panel-display mapping
+     * panel-display mapping ( 단건 )
      *
      * @param dto
      * @param shopId
@@ -107,6 +106,22 @@ public class DisplayController {
             , @PathVariable("shopId") long shopId) {
         ResponseDto2<String> res = new ResponseDto2();
         displayService.updateDeviceDisplayMapping(dto);
+        res.setSuccess(true);
+        return res;
+    }
+
+    /**
+     * panel-display mapping ( list )
+     *
+     * @param dto
+     * @param shopId
+     * @return
+     */
+    @PutMapping("/{shopId}/panel-display-mappings")
+    public ResponseDto2 updateDeviceDisplayMappingList(@RequestBody List<ShopDeviceEntity> mappings
+            , @PathVariable("shopId") long shopId) {
+        ResponseDto2<String> res = new ResponseDto2();
+        displayService.updateDeviceDisplayMappings(mappings);
         res.setSuccess(true);
         return res;
     }

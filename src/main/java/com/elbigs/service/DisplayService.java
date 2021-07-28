@@ -72,6 +72,13 @@ public class DisplayService {
     @Value("${spring.url.base}")
     public String SERVER_URL;
 
+    @Value("${pdfcrowd.auth.user}")
+    public String PDFCROWD_USER_NAME;
+
+    @Autowired
+    private HtmlToImage htmlToImage;
+
+
     /**
      * create preview image & upload azure
      *
@@ -81,9 +88,10 @@ public class DisplayService {
      */
     private String makePreviewAndUpload(String htmlUrl, String targetDir) {
 
+
         String fileExt = "jpg";
         String localSavePath = targetDir + File.separator + "priview." + fileExt;
-        boolean isSuccess = HtmlToImage.convertToImage(htmlUrl, localSavePath, fileExt);
+        boolean isSuccess = htmlToImage.convertToImage(htmlUrl, localSavePath, fileExt);
 
         String dir = DateUtil.getCurrDateStr("yyyyMMdd");
         String convertName = ElbigsUtil.makeRandAlpabet(10) + (System.currentTimeMillis() / 1000);
@@ -124,6 +132,13 @@ public class DisplayService {
             return false;
         }
         return true;
+    }
+
+    public void updateShopDisplayTitle(Long shopDisplayId, String displayName){
+
+        ShopDisplayEntity entity = shopDisplayRepo.findById(shopDisplayId).get();
+        entity.setDisplayName(displayName);
+        shopDisplayRepo.save(entity);
     }
 
     @Transactional
@@ -244,6 +259,15 @@ public class DisplayService {
      */
     public void updateDeviceDisplayMapping(ShopDeviceEntity entity) {
         shopDeviceMapper.updateShopDeviceDisplay(entity);
+    }
+
+    @Transactional
+    public void updateDeviceDisplayMappings(List<ShopDeviceEntity> list) {
+
+        for(ShopDeviceEntity device : list){
+            shopDeviceMapper.updateShopDeviceDisplay(device);
+        }
+
     }
 
     /**
@@ -372,7 +396,7 @@ public class DisplayService {
      * @throws IOException
      */
     @Transactional
-    public boolean uploadTemplate(MultipartFile file, HtmlTemplateEntity entity) throws IOException, ZipException {
+    public boolean uploadTemplate(MultipartFile file, HtmlTemplateEntity entity) throws IOException, ZipException, Exception {
 
         String orgFileName = file.getOriginalFilename();
         String ext = orgFileName.substring(orgFileName.length() - 3, orgFileName.length());
@@ -414,6 +438,10 @@ public class DisplayService {
             preViewUploadPath = makePreviewAndUpload(htmlSaveUrl, targetPath);
         }
 
+        logger.info("preview image path : " + preViewUploadPath);
+        if(preViewUploadPath==null){
+            throw new Exception("preview image fail");
+        }
         entity.setPreviewImagePath(preViewUploadPath);
 
         // 5. db에 정보 저장

@@ -35,14 +35,7 @@ html:
   template:
     path: /usr/share/nginx/html/template
 
-file:
-  connectable-type-shop: App\Models\Shop
-  connectable-type-facility: App\Models\Facility
-  connectable-type-tourism: App\Models\Tourism
-  connectable-type-event: App\Models\Event
-  connectable-type-lineNotice: App\Models\LineNotice
-  connectable-type-setting: App\Models\Setting
-  connectable-type-notice: App\Models\Notice
-  connectable-type-message: App\Models\Message
-  connectable-type-qna: App\Models\Qna
-  connectable-type-adver: App\Models\AdDetail
+pdfcrowd:
+  auth:
+    user: kangeddie01
+    api-key: b071095f978e67ff37fbb3afbd31f51a
