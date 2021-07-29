@@ -21,6 +21,7 @@ public class ShopEntity extends BaseEntity {
     private String businessNumber;
     private String phone;
     private String addr;
+    private String addrDetail;
     private String shopCategory;
     private String scanImg;
 

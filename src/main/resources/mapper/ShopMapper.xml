@@ -16,8 +16,8 @@
              , max(i1.name) as "name"
              , max(user_name) as user_name
              , max(i1.phone) as phone
-             , sum(case when sd.screen_ratio = '1' then 1 else 0 end) x_ratio_count
-             , sum(case when sd.screen_ratio = '2' then 1 else 0 end) y_ratio_count
+             , sum(case when sd.screen_ratio = 'x' then 1 else 0 end) x_ratio_count
+             , sum(case when sd.screen_ratio = 'y' then 1 else 0 end) y_ratio_count
              , count(sd.shop_device_id) device_count
              , sum(case when extract(epoch from (now() - sd.last_check_at::timestamp))::integer &lt; 60 then 1 else 0 end ) active_count
              , max(i1.created_at) created_at
@@ -33,13 +33,16 @@
                      , u.phone as user_phone
                      , count(1) over() total_count
                   from shop s join cms_user u on u.shop_id = s.shop_id
-                 where 1 = 1
-                 order by s.created_at desc
+                 where 1 = 1 and u.status = 1
+               <if test="searchStr!=null and searchStr!=''">
+                   and (s.name like '%'||#{searchStr} ||'%' or u.name like '%'||#{searchStr} ||'%')
+               </if>
                 <if test="length > 0">
                  limit #{length} offset #{beginNo}
                 </if>
                ) i1
           join shop_device sd on sd.shop_id = i1.shop_id
          group by i1.shop_id, total_count
+         order by max(i1.created_at) desc
     </select>
 </mapper>

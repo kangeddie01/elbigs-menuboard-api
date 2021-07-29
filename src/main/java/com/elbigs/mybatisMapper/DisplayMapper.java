@@ -1,6 +1,7 @@
 package com.elbigs.mybatisMapper;
 
 import com.elbigs.dto.MediaLibDto;
+import com.elbigs.entity.HtmlTemplateEntity;
 import com.elbigs.entity.MediaLibEntity;
 import com.elbigs.entity.ShopDeviceEntity;
 import com.elbigs.entity.TemplateCategoryEntity;
@@ -13,6 +14,8 @@ import java.util.Map;
 public interface DisplayMapper {
 
     List<TemplateCategoryEntity> selectTemplateCategoryList();
+
+    List<HtmlTemplateEntity> selectHtmlTemplateList(HtmlTemplateEntity param);
 
 
 }

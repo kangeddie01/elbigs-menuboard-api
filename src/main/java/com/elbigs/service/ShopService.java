@@ -2,6 +2,8 @@ package com.elbigs.service;
 
 import com.elbigs.dto.PagingParam;
 import com.elbigs.dto.ResponseDto;
+import com.elbigs.dto.ShopDeviceDto;
+import com.elbigs.dto.ShopDto;
 import com.elbigs.entity.CmsUserEntity;
 import com.elbigs.entity.ShopDeviceEntity;
 import com.elbigs.entity.ShopEntity;
@@ -10,6 +12,7 @@ import com.elbigs.jpaRepository.CmsUserRepo;
 import com.elbigs.jpaRepository.ShopDeviceRepo;
 import com.elbigs.jpaRepository.ShopRepo;
 import com.elbigs.jpaRepository.UserRolesRepo;
+import com.elbigs.mybatisMapper.ShopDeviceMapper;
 import com.elbigs.mybatisMapper.ShopMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +47,24 @@ public class ShopService extends CommonService {
     @Autowired
     private DisplayService displayService;
 
+    @Autowired
+    private ShopDeviceMapper shopDeviceMapper;
+
+    private ResponseDto validateDevice(List<ShopDeviceEntity> deviceEntitys) {
+        ResponseDto res = new ResponseDto();
+        String requireMsg = getMessage("error.msg.required");
+
+
+        for (ShopDeviceEntity deviceEntity : deviceEntitys) {
+            if (!StringUtils.hasLength(deviceEntity.getPanelId())) {
+                res.addErrors("panelId", requireMsg);
+            } else if (!StringUtils.hasLength(deviceEntity.getSettopId())) {
+                res.addErrors("settopId", requireMsg);
+            }
+        }
+        return res;
+
+    }
     private ResponseDto validateShop(ShopEntity shopEntity, boolean isNew) {
         ResponseDto res = new ResponseDto();
 
@@ -118,6 +139,9 @@ public class ShopService extends CommonService {
             return validationRes;
         }
 
+//        validateDevice(entity.getShopDevices())
+
+
         // shop 등록
         shopRepo.save(entity);
         shopId = entity.getShopId();
@@ -126,6 +150,7 @@ public class ShopService extends CommonService {
         entity.getUser().setShopId(shopId);
         if (isNew) {
             entity.getUser().setPassword(BCrypt.hashpw(entity.getUser().getPassword(), BCrypt.gensalt()));
+            entity.getUser().setStatus(1);
         }
         cmsUserRepo.save(entity.getUser());
 
@@ -145,10 +170,10 @@ public class ShopService extends CommonService {
     }
 
     public ShopEntity selectShop(long shopId) {
-        ShopEntity shop = shopRepo.findById(shopId);
-        shop.setUser(cmsUserRepo.findByShopId(shopId));
-        shop.setShopDevices(shopDeviceRepo.findByShopIdOrderBySortNoAsc(shopId));
-        return shop;
+        ShopEntity shopEntity = shopRepo.findById(shopId);
+        shopEntity.setUser(cmsUserRepo.findByShopIdAndStatus(shopId, 1));
+//        shop.setShopDevices(shopDeviceMapper.selectShopDeviceList(shopId));
+        return shopEntity;
     }
 
     public List<ShopEntity> selectShopList(PagingParam param) {

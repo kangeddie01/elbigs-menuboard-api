@@ -29,5 +29,22 @@
           from cte
          order by hierarchy
     </select>
-
+    <select id="selectHtmlTemplateList" resultType="com.elbigs.entity.HtmlTemplateEntity">
+        select
+               ht.*
+             , tc."name" as category_name
+          from html_template ht
+          left outer join template_category tc on tc.template_category_id = ht.template_category_id
+         where 1 = 1
+        <if test="templateCategoryId != null and templateCategoryId > -1">
+           and ht.template_category_id = #{templateCategoryId}
+        </if>
+        <if test="recommendYn != null and recommendYn!=''">
+           and ht.recommend_yn = #{recommendYn}
+        </if>
+        <if test="screenRatio != null and screenRatio!=''">
+           and ht.screen_ratio = #{screenRatio}
+        </if>
+    order by updated_at desc, created_at desc
+    </select>
 </mapper>

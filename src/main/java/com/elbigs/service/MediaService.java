@@ -16,7 +16,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
 
@@ -66,15 +71,18 @@ public class MediaService {
     }
 
 
-    public MediaLibEntity insertMediaLib(MultipartFile file, MediaLibEntity entity) {
+    public MediaLibEntity insertMediaLib(MultipartFile file, MediaLibEntity entity) throws IOException {
 
         String orgFileName = file.getOriginalFilename();
         String ext = orgFileName.substring(orgFileName.length() - 3, orgFileName.length());
 
+        String uploadPath = uploadMediaImageToAzure(file, ext);
+        String thumbnailPath = makeThumbnail(file, ext);
+
         // 이미지 cloud upload
-        String dir = DateUtil.getCurrDateStr("yyyyMMdd");
-        String convertName = ElbigsUtil.makeRandAlpabet(10) + (System.currentTimeMillis() / 1000);
-        String uploadPath = dir + "/" + convertName + "." + ext;
+//        String dir = DateUtil.getCurrDateStr("yyyyMMdd");
+//        String convertName = ElbigsUtil.makeRandAlpabet(10) + (System.currentTimeMillis() / 1000);
+//        String uploadPath = dir + "/" + convertName + "." + ext;
 //        System.out.println("uploadPath : " + uploadPath);
 
 
@@ -85,17 +93,50 @@ public class MediaService {
             e.printStackTrace();
         }
 
-        azureBlobAdapter.upload(file, uploadPath);
+//        azureBlobAdapter.upload(file, uploadPath);
 
         entity.setSize(file.getSize());
         entity.setOrginFilename(orgFileName);
         entity.setMediaPath(uploadPath);
+        entity.setThumbnailPath(thumbnailPath);
 
         mediaLibRepo.save(entity);
 
         return mediaLibRepo.findById(entity.getMediaLibId()).get();
     }
 
+    private String uploadMediaImageToAzure(MultipartFile file, String ext) {
+        String dir = DateUtil.getCurrDateStr("yyyyMMdd");
+        String convertName = ElbigsUtil.makeRandAlpabet(10) + (System.currentTimeMillis() / 1000);
+        String uploadPath = dir + "/" + convertName + "." + ext;
+        azureBlobAdapter.upload(file, uploadPath);
+
+        return uploadPath;
+    }
+
+    private String makeThumbnail(MultipartFile file, String ext) throws IOException {
+
+        int thumbnailWidth = (int)(189 * 1.2);
+        int thumbnailHeight = (int)(107 * 1.2);
+
+        BufferedImage img =
+                new BufferedImage(thumbnailWidth, thumbnailHeight, BufferedImage.TYPE_INT_RGB);
+        BufferedImage read = ImageIO.read(file.getInputStream());
+        img.createGraphics().drawImage(
+                read.getScaledInstance(thumbnailWidth, thumbnailHeight, Image.SCALE_SMOOTH), 0, 0, null);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ImageIO.write(img, "jpg", baos);
+        InputStream bais = new ByteArrayInputStream(baos.toByteArray());
+
+        String dir = DateUtil.getCurrDateStr("yyyyMMdd");
+        String convertName = ElbigsUtil.makeRandAlpabet(10) + (System.currentTimeMillis() / 1000);
+        String uploadPath = dir + "/" + convertName + "." + ext;
+
+        azureBlobAdapter.upload(bais, uploadPath, (int) file.getSize());
+
+        return uploadPath;
+
+    }
 
     /**
      * 미디어 카테고리 등록/수정
@@ -108,6 +149,7 @@ public class MediaService {
 
     /**
      * 미디어 카테고리 삭제
+     *
      * @param mediaCategoryId
      */
     public void deleteMediaCategory(Long mediaCategoryId) {

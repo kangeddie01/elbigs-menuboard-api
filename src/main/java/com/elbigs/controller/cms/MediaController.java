@@ -13,7 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/cms")
@@ -80,12 +82,20 @@ public class MediaController {
         logger.info("param : mediaCategoryId : " + mediaCategoryId);
         logger.info("param : mediaType : " + mediaType);
 
-        MediaLibEntity param = new MediaLibEntity();
-        param.setMediaType(mediaType);
-        param.setShopId(shopId);
-        param.setMediaCategoryId(mediaCategoryId);
-        MediaLibEntity newLib = mediaService.insertMediaLib(file.get(0), param);
-        res.setData(newLib);
+        try {
+            MediaLibEntity param = new MediaLibEntity();
+            param.setMediaType(mediaType);
+            param.setShopId(shopId);
+            param.setMediaCategoryId(mediaCategoryId);
+            MediaLibEntity newLib = mediaService.insertMediaLib(file.get(0), param);
+            res.setData(newLib);
+            res.setSuccess(true);
+        } catch (Exception e) {
+            res.setSuccess(false);
+            Map<String, Object> error = new HashMap<>();
+            error.put("message", e.getMessage());
+            res.setErrors(error);
+        }
         return res;
 
     }

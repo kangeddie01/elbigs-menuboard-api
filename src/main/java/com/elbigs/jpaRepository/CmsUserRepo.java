@@ -8,4 +8,6 @@ import org.springframework.stereotype.Repository;
 public interface CmsUserRepo extends JpaRepository<CmsUserEntity, Long> {
     CmsUserEntity findByLoginId(String loginId);
     CmsUserEntity findByShopId(Long shopId);
+
+    CmsUserEntity findByShopIdAndStatus(Long shopId, int status);
 }

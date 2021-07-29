@@ -203,7 +203,7 @@ public class DisplayController {
             @RequestParam(required = false, value = "templateCategoryId") Long templateCategoryId
     ) {
         ResponseDto2<List<HtmlTemplateEntity>> res = new ResponseDto2();
-        res.setData(displayService.selectRecommendTemplateList(templateCategoryId));
+        res.setData(displayService.selectTemplateList2(templateCategoryId, null, "Y"));
         res.setSuccess(true);
         return res;
     }
@@ -215,7 +215,7 @@ public class DisplayController {
             @RequestParam(required = false, value = "orderBy") String orderBy
     ) {
         ResponseDto2<List<HtmlTemplateEntity>> res = new ResponseDto2();
-        res.setData(displayService.selectTemplateList(templateCategoryId, screenRatio));
+        res.setData(displayService.selectTemplateList2(templateCategoryId, screenRatio, "N"));
         res.setSuccess(true);
         return res;
     }

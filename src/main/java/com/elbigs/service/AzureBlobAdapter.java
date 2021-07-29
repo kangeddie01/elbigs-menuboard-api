@@ -35,6 +35,7 @@ public class AzureBlobAdapter {
 
             client.blobName(uploadedPath).buildClient().upload(inputStream, imagedata.length, true);
 
+
         } catch (Exception e) {
             e.printStackTrace();
         }

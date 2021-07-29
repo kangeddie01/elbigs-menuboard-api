@@ -363,9 +363,15 @@ public class DisplayService {
         } else {
             return htmlTemplateRepo.findByRecommendYnAndTemplateCategoryId("Y", templateCategoryId);
         }
-
     }
 
+    public List<HtmlTemplateEntity> selectTemplateList2(Long templateCategoryId, String screenRatio, String recommendYn) {
+        HtmlTemplateEntity param = new HtmlTemplateEntity();
+        param.setRecommendYn(recommendYn);
+        param.setScreenRatio(screenRatio);
+        param.setTemplateCategoryId(templateCategoryId);
+        return displayMapper.selectHtmlTemplateList(param);
+    }
     /**
      * 일반 템플릿 조회
      *

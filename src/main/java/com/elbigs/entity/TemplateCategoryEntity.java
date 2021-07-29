@@ -2,10 +2,7 @@ package com.elbigs.entity;
 
 import lombok.*;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 @Builder
 @Getter
@@ -21,4 +18,5 @@ public class TemplateCategoryEntity extends BaseEntity {
     private String name;
     private Long upperCategoryId;
     private int sortNo;
+
 }
