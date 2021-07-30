@@ -55,12 +55,8 @@ public class ShopController {
     @PutMapping("/{shopId}")
     public ResponseDto saveShop(@RequestBody ShopEntity entity, @PathVariable("shopId") long shopId) {
 
-        ResponseDto res = new ResponseDto();
         entity.setShopId(shopId);
-        shopService.saveShop(entity);
-
-        res.put("shopId", entity.getShopId());
-
+        ResponseDto res = shopService.saveShop(entity);
         return res;
     }
 

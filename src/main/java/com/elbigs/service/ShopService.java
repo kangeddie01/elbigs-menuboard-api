@@ -65,6 +65,7 @@ public class ShopService extends CommonService {
         return res;
 
     }
+
     private ResponseDto validateShop(ShopEntity shopEntity, boolean isNew) {
         ResponseDto res = new ResponseDto();
 
@@ -75,48 +76,54 @@ public class ShopService extends CommonService {
             res.addErrors("name", requireMsg);
         }
 
-        if (isNew) {
+        // 사용자 정보 필수 체크
+        if (shopEntity.getUser() == null) {
+            res.addErrors("user.loginId", requireMsg);
+//                res.addErrors("user.password", requireMsg);
+        } else {
 
-            // 사용자 정보 필수 체크
-            if (shopEntity.getUser() == null) {
+            // 로그인 아이디 체크
+            if (!StringUtils.hasLength(shopEntity.getUser().getLoginId())) {
                 res.addErrors("user.loginId", requireMsg);
-                res.addErrors("user.password", requireMsg);
-            } else {
+            } else if (isNew) {
 
-                // 로그인 아이디 체크
-                if (!StringUtils.hasLength(shopEntity.getUser().getLoginId())) {
-                    res.addErrors("user.loginId", requireMsg);
-                } else {
-
-                    CmsUserEntity user = cmsUserRepo.findByLoginId(shopEntity.getUser().getLoginId());
-                    if (user != null) {
-                        res.addErrors("user.loginId", getMessage("error.msg.exist-user"));
-                    }
-
+                CmsUserEntity user = cmsUserRepo.findByLoginId(shopEntity.getUser().getLoginId());
+                if (user != null) {
+                    res.addErrors("user.loginId", getMessage("error.msg.exist-user"));
                 }
-
-                // 패스워드 체크
-                boolean passwordExists = true;
-                if (!StringUtils.hasLength(shopEntity.getUser().getPassword())) {
-                    res.addErrors("user.password", requireMsg);
-                    passwordExists = false;
-                }
-                if (!StringUtils.hasLength(shopEntity.getUser().getPasswordConfirm())) {
-                    res.addErrors("user.passwordConfirm", requireMsg);
-                    passwordExists = false;
-                }
-
-                if (passwordExists) {
-                    logger.info("password length : " + shopEntity.getUser().getPassword().length());
-                    if (shopEntity.getUser().getPassword().length() < 6) {
-                        res.addErrors("user.password", getMessage("error.msg.change-password3"));
-                    } else if (!shopEntity.getUser().getPassword().equals(shopEntity.getUser().getPasswordConfirm())) {
-                        res.addErrors("user.password", getMessage("error.msg.change-password1"));
-                        res.addErrors("user.passwordConfirm", getMessage("error.msg.change-password1"));
-                    }
-                }
-
             }
+
+            if (!StringUtils.hasLength(shopEntity.getUser().getName())) {
+                res.addErrors("user.name", requireMsg);
+            }
+
+            boolean passwordExist = StringUtils.hasLength(shopEntity.getUser().getPassword());
+            boolean passwordConfirmExist = StringUtils.hasLength(shopEntity.getUser().getPasswordConfirm());
+
+            if (isNew && !passwordExist) {
+                res.addErrors("user.password", requireMsg);
+            }
+
+            if (isNew && !passwordConfirmExist) {
+                res.addErrors("user.passwordConfirm", requireMsg);
+            }
+
+            if (passwordExist && !passwordConfirmExist) {
+                res.addErrors("user.passwordConfirm", requireMsg);
+            }
+            // 패스워드 체크
+            else if (passwordExist && passwordConfirmExist) {
+                logger.info("password length : " + shopEntity.getUser().getPassword().length());
+                // 패스워드 길이체크
+                if (shopEntity.getUser().getPassword().length() < 6) {
+                    res.addErrors("user.password", getMessage("error.msg.change-password3"));
+                } else if (!shopEntity.getUser().getPassword().equals(shopEntity.getUser().getPasswordConfirm())) {
+                    // 패스워드 일치 체크
+                    res.addErrors("user.password", getMessage("error.msg.change-password1"));
+                    res.addErrors("user.passwordConfirm", getMessage("error.msg.change-password1"));
+                }
+            }
+
         }
 
 
