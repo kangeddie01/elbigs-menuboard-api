@@ -13,4 +13,6 @@ public interface MediaMapper {
     List<MediaLibDto> selectMediaLibList(MediaLibEntity param);
 
     List<MediaCategoryEntity> selectMediaCategoryList(MediaCategoryEntity param);
+
+    int selectMediaLibTotalCount(MediaLibEntity param);
 }

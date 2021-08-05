@@ -127,7 +127,7 @@ public class DisplayController {
     }
 
     /**
-     * delete display
+     * 제작 화면 삭제
      *
      * @param shopId
      * @param shopDisplayId
@@ -135,9 +135,10 @@ public class DisplayController {
      */
     @DeleteMapping("/{shopId}/shop-displays/{shopDisplayId}")
     public ResponseDto2 deleteShopDisplay(@PathVariable("shopId") long shopId, @PathVariable("shopDisplayId") long shopDisplayId) {
-        ResponseDto2<String> res = new ResponseDto2();
-        displayService.deleteShopDisplay(shopDisplayId);
+        ResponseDto2<Boolean> res = new ResponseDto2();
+        boolean isDeleted = displayService.deleteShopDisplay(shopDisplayId);
         res.setSuccess(true);
+        res.setData(isDeleted);
         return res;
     }
 

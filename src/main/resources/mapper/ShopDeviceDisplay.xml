@@ -10,6 +10,7 @@
         where shop_device_id = #{shopDeviceId}
     </update>
     <select id="selectShopDeviceList" resultType = "com.elbigs.dto.ShopDeviceDto">
+        /* ShopDeviceMapper.selectShopDeviceList */
         select sd.*
              , sd3.preview_image_path
              , sd3.display_name
@@ -18,4 +19,17 @@
         where sd.shop_id = #{shopId}
         order by sd.sort_no
     </select>
+    <update id="updateLastCheckAt">
+        /* ShopDeviceMapper.updateLastCheckAt */
+        update shop_device
+           set last_check_at = now()
+             , status = 1
+         where shop_device_id = #{shopDeviceId}
+    </update>
+    <update id="updateDeviceStatusToModify">
+        update shop_device
+           set status = 2
+             , updated_at = now()
+         where shop_display_id = #{shopDisplayId}
+    </update>
 </mapper>

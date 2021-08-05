@@ -224,6 +224,9 @@ public class DisplayService {
         }
         shopDisplayRepo.save(shopDisplay);
 
+        // 패널 상태 ( modified 로 변경 )
+        shopDeviceMapper.updateDeviceStatusToModify(shopDisplay.getShopDisplayId());
+
         logger.info("new display id : " + shopDisplay.getShopDisplayId());
 
         return shopDisplay;
@@ -388,8 +391,23 @@ public class DisplayService {
 
     }
 
-    public void deleteShopDisplay(Long shopDisplayId) {
-        shopDisplayRepo.deleteById(shopDisplayId);
+    /**
+     * 전시 화면 삭제
+     * <p> 패널에 매핑여부 체크하여 매핑되어 있지 않다면 삭제 처리 </p>
+     * @param shopDisplayId
+     * @return
+     */
+    public boolean deleteShopDisplay(Long shopDisplayId) {
+        // 패널에 매핑되어있는지 체크
+        List<ShopDeviceEntity> mappingList = shopDeviceRepo.findByShopDisplayId(shopDisplayId);
+
+        if (mappingList == null || mappingList.size() == 0) {
+            // 매핑된 패널이 없다면 삭제
+            shopDisplayRepo.deleteById(shopDisplayId);
+            return true;
+        } else {
+            return false;
+        }
     }
 
 

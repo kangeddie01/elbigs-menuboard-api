@@ -21,9 +21,14 @@
           from media_lib ml
           left outer join media_category mc on ml.media_category_id = mc.media_category_id
          where 1 = 1
-        <if test="shopId!=null and shopId > 0">
+        <choose>
+           <when test="shopId!=null and shopId > 0">
            and ml.shop_id = #{shopId}
-        </if>
+           </when>
+           <otherwise>
+           and ml.shop_id is null
+           </otherwise>
+        </choose>
         <choose>
             <when test="mediaCategoryId == -1">
            and ml.media_category_id is null
@@ -42,5 +47,8 @@
    </choose>
         order by ml.updated_at desc
                , ml.created_at desc
+    </select>
+    <select id="selectMediaLibTotalCount" resultType="java.lang.Integer">
+
     </select>
 </mapper>

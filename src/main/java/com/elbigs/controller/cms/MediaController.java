@@ -30,7 +30,7 @@ public class MediaController {
 
     /**
      * 미디어 리스트 조회
-     * @param shopId
+     * @param shopId 0 이면 master
      * @param mediaCategoryId -1 : 미분류만(카테고리 없는) , null or 0 : 전체
      * @param categoryType    bd :뱃지, bg : 배경화면
      * @param mediaType  i : 이미지, v : 동영상
@@ -68,6 +68,16 @@ public class MediaController {
         List<MediaLibDto> list = mediaService.selectMediaLibList(param);
         res.setData(list);
         res.setSuccess(true);
+        return res;
+    }
+
+    @GetMapping("/{shopId}/media-lib/total")
+    public ResponseDto2 selectMediaLibTotal(@PathVariable("shopId") long shopId) {
+        ResponseDto2<Integer> res = new ResponseDto2();
+
+
+        res.setSuccess(true);
+        res.setData(100);
         return res;
     }
 

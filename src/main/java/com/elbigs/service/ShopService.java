@@ -4,25 +4,23 @@ import com.elbigs.dto.PagingParam;
 import com.elbigs.dto.ResponseDto;
 import com.elbigs.dto.ShopDeviceDto;
 import com.elbigs.dto.ShopDto;
-import com.elbigs.entity.CmsUserEntity;
-import com.elbigs.entity.ShopDeviceEntity;
-import com.elbigs.entity.ShopEntity;
-import com.elbigs.entity.UserRolesEntity;
-import com.elbigs.jpaRepository.CmsUserRepo;
-import com.elbigs.jpaRepository.ShopDeviceRepo;
-import com.elbigs.jpaRepository.ShopRepo;
-import com.elbigs.jpaRepository.UserRolesRepo;
+import com.elbigs.entity.*;
+import com.elbigs.jpaRepository.*;
 import com.elbigs.mybatisMapper.ShopDeviceMapper;
 import com.elbigs.mybatisMapper.ShopMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class ShopService extends CommonService {
@@ -45,10 +43,16 @@ public class ShopService extends CommonService {
     private ShopDeviceRepo shopDeviceRepo;
 
     @Autowired
+    private ShopDisplayRepo shopDisplayRepo;
+
+    @Autowired
     private DisplayService displayService;
 
     @Autowired
     private ShopDeviceMapper shopDeviceMapper;
+
+    @Value("${blob.storage-url}")
+    String azureStorageUrl;
 
     private ResponseDto validateDevice(List<ShopDeviceEntity> deviceEntitys) {
         ResponseDto res = new ResponseDto();
@@ -187,4 +191,48 @@ public class ShopService extends CommonService {
         return shopMapper.selectShopList(param);
     }
 
+
+    /**
+     * 서버 처크 및 다운로드 URL 리턴
+     *
+     * @param settopId
+     * @return resType : NOT_REGISTER, NO_DISPLAY, MODIFIED, NO_CHANGE, NOT_AVAILABLE
+     */
+    public Map<String, String> checkServer(String settopId) {
+
+        String downloadUrl = null;
+        Map<String, String> resMap = new HashMap<>();
+
+        ShopDeviceEntity param = new ShopDeviceEntity();
+        ShopDeviceEntity panel = shopDeviceRepo.findBySettopId(settopId);
+
+        if (panel == null) {
+            resMap.put("resType", "NOT_REGISTER");// 셋탑 정보 미등록
+            return resMap;
+        } else if (panel.getShopDisplayId() == null || panel.getShopDisplayId() <= 0) {
+            resMap.put("resType", "NO_DISPLAY");// 전시정보 미설정
+        } else if (0 == panel.getStatus()) {
+            resMap.put("resType", "NOT_AVAILABLE");// 전시정보 변경 없음
+            return resMap;
+        } else if (1 == panel.getStatus()) {
+            resMap.put("resType", "NO_CHANGE");// 전시정보 변경 없음
+
+        } else if (2 == panel.getStatus()) {
+            // if modified
+            Optional<ShopDisplayEntity> res = shopDisplayRepo.findById(panel.getShopDisplayId());
+
+            if (res != null || res.get() != null) {
+                downloadUrl = azureStorageUrl + "/" + res.get().getDownloadPath();
+                param.setStatus(1);// modified => active
+            }
+            resMap.put("resType", "MODIFIED");// 전시정보 변경 없음
+            resMap.put("downloadUrl", downloadUrl);// 전시정보 변경 없음
+        }
+
+        // update last checked data
+        param.setShopDeviceId(panel.getShopDeviceId());
+        shopDeviceMapper.updateLastCheckAt(panel.getShopDeviceId());
+
+        return resMap;
+    }
 }

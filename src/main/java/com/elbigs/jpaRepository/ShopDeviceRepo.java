@@ -15,4 +15,9 @@ public interface ShopDeviceRepo extends CrudRepository<ShopDeviceEntity, Long> {
 
     List<ShopDeviceEntity> findByShopId(long shopId);
 
+
+    ShopDeviceEntity findBySettopId(String settopId);
+
+    List<ShopDeviceEntity> findByShopDisplayId(long shopDisplayId);
+
 }
